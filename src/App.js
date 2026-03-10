@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 
 const FONT = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -530,6 +530,65 @@ const styles = `
     box-shadow: 0 4px 20px rgba(30,43,47,0.3);
     animation: obFadeIn 0.3s ease;
   }
+
+  .preview-modal {
+    width: 100%;
+    max-width: 420px;
+    background: var(--warm-white);
+    border-radius: 28px 28px 0 0;
+    padding: 32px 28px 48px;
+    animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    text-align: center;
+  }
+  .preview-modal-emoji {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .preview-modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--charcoal);
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .preview-modal-sub {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.65;
+    margin-bottom: 28px;
+  }
+  .preview-modal-pills {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+    text-align: left;
+  }
+  .preview-modal-pill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--charcoal);
+    font-weight: 500;
+  }
+  .preview-modal-pill-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .preview-modal-pill-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 2px;
+  }
 `;
 
 const FOUNDER_EMAIL = "jordanhaddadi@gmail.com";
@@ -1031,7 +1090,7 @@ function SuccessPage() {
   );
 }
 
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+  // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 export default function PortlandPlayDates() {
   const loadSession = () => {
@@ -1062,6 +1121,8 @@ export default function PortlandPlayDates() {
   const [profile, setProfile] = useState(session.profile);
   const [kids, setKids] = useState(session.kids);
   const [showTallySuccess, setShowTallySuccess] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const isFirstRender = useRef(true);
 
   // App state
   const [view, setView] = useState("list");
@@ -1117,16 +1178,14 @@ export default function PortlandPlayDates() {
   }, [obStep, profile, kids]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("submitted") === "true") {
-      localStorage.setItem(
-        "ppd_beta_session",
-        JSON.stringify({ obStep: 4, profile: { name: "", hood: "", avatar: "" }, kids: [] })
-      );
-      window.history.replaceState({}, "", "/");
-      window.location.reload();
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  }, []);
+    if (obStep === 4) {
+      setShowPreviewModal(true);
+    }
+  }, [obStep]);
 
   const isCreateDisabled = !formData.title || !selectedVenue;
   let submitHelper = "";
@@ -1175,17 +1234,18 @@ export default function PortlandPlayDates() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // ── ONBOARDING ──
-  if (obStep === 0) return <><style>{styles}</style><WelcomeScreen onNext={() => setObStep(1)} /></>;
-  if (obStep === 1) return <><style>{styles}</style><AboutYouScreen onNext={() => setObStep(2)} onBack={() => setObStep(0)} profile={profile} setProfile={setProfile} /></>;
-  if (obStep === 2) return <><style>{styles}</style><YourKidsScreen onDone={() => setObStep(3)} onBack={() => setObStep(1)} profile={profile} kids={kids} setKids={setKids} /></>;
-  if (obStep === 3) return <><style>{styles}</style><WaitlistScreen profile={profile} onPreview={() => setObStep(4)} onFormSubmitted={() => setShowTallySuccess(true)} showTallySuccess={showTallySuccess} /></>;
+  function MainApp() {
+    // ── ONBOARDING ──
+    if (obStep === 0) return <><style>{styles}</style><WelcomeScreen onNext={() => setObStep(1)} /></>;
+    if (obStep === 1) return <><style>{styles}</style><AboutYouScreen onNext={() => setObStep(2)} onBack={() => setObStep(0)} profile={profile} setProfile={setProfile} /></>;
+    if (obStep === 2) return <><style>{styles}</style><YourKidsScreen onDone={() => setObStep(3)} onBack={() => setObStep(1)} profile={profile} kids={kids} setKids={setKids} /></>;
+    if (obStep === 3) return <><style>{styles}</style><WaitlistScreen profile={profile} onPreview={() => setObStep(4)} onFormSubmitted={() => setShowTallySuccess(true)} showTallySuccess={showTallySuccess} /></>;
 
-  // ── MAIN APP ──
-  return (
-    <>
-      <style>{styles}</style>
-      <div className="app">
+    // ── MAIN APP ──
+    return (
+      <>
+        <style>{styles}</style>
+        <div className="app">
 
         {/* TOP BAR */}
         <div className="topbar">
@@ -1475,6 +1535,45 @@ export default function PortlandPlayDates() {
           </div>
         )}
 
+        {showPreviewModal && (
+          <div className="modal-overlay" 
+            onClick={() => setShowPreviewModal(false)}>
+            <div className="preview-modal" 
+              onClick={e => e.stopPropagation()}>
+              <span className="preview-modal-emoji">👀</span>
+              <div className="preview-modal-title">
+                You're previewing<br />PlayDates
+              </div>
+              <div className="preview-modal-sub">
+                Poke around and get a feel for what's coming 
+                to Portland this spring. Everything here is 
+                a preview — playdates are not live yet.
+              </div>
+              <div className="preview-modal-pills">
+                {[
+                  { icon:"🗺️", text:"Browse the map", sub:"See where playdates will happen" },
+                  { icon:"🛝", text:"Explore venues", sub:"Parks, libraries, and cafés near you" },
+                  { icon:"📅", text:"Host a playdate", sub:"Try creating one to see how it works" },
+                ].map(p => (
+                  <div key={p.text} className="preview-modal-pill">
+                    <span className="preview-modal-pill-icon">{p.icon}</span>
+                    <div>
+                      <div>{p.text}</div>
+                      <div className="preview-modal-pill-sub">{p.sub}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button 
+                className="ob-btn-primary"
+                onClick={() => setShowPreviewModal(false)}
+              >
+                Let's explore 🌊
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* CREATE MODAL */}
         {showCreate && (
           <div className="modal-overlay" onClick={() => { setShowCreate(false); setShowAddVenue(false); }}>
@@ -1661,5 +1760,13 @@ export default function PortlandPlayDates() {
         )}
       </div>
     </>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/success" element={<SuccessPage />} />
+      <Route path="*" element={<MainApp />} />
+    </Routes>
   );
 }
