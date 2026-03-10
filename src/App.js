@@ -481,7 +481,7 @@ const styles = `
   .add-btn { width: 52px; height: 52px; background: var(--terracotta); border-radius: 16px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; box-shadow: 0 4px 16px rgba(196,88,58,0.4); transition: transform 0.15s; margin-top: -20px; }
   .add-btn:hover { transform: scale(1.08); }
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(30,43,47,0.5); z-index: 50; display: flex; align-items: flex-end; justify-content: center; animation: fadeIn 0.2s ease; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(30,43,47,0.5); z-index: 50; display: flex; align-items: flex-end; justify-content: center; animation: fadeIn 0.2s ease; overflow-y: auto; }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
   @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
   .modal { width: 100%; max-width: 420px; background: var(--warm-white); border-radius: 28px 28px 0 0; padding: 12px 24px 48px; animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); max-height: 88vh; overflow-y: auto; }
@@ -536,7 +536,7 @@ const styles = `
     max-width: 420px;
     background: var(--warm-white);
     border-radius: 28px 28px 0 0;
-    padding: 32px 28px 48px;
+    padding: 32px 28px 64px;
     animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
     text-align: center;
   }
@@ -1090,162 +1090,53 @@ function SuccessPage() {
   );
 }
 
-  // ─── MAIN APP ─────────────────────────────────────────────────────────────────
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
-export default function PortlandPlayDates() {
-  const loadSession = () => {
-    try {
-      const saved = localStorage.getItem("ppd_beta_session");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return {
-          obStep: parsed.obStep || 0,
-          profile: parsed.profile || { name: "", hood: "", avatar: "" },
-          kids: parsed.kids || [],
-        };
-      }
-    } catch (e) {
-      // ignore parse errors
+function loadSession() {
+  try {
+    const saved = localStorage.getItem("ppd_beta_session");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        obStep: parsed.obStep || 0,
+        profile: parsed.profile || { name: "", hood: "", avatar: "" },
+        kids: parsed.kids || [],
+      };
     }
-    return {
-      obStep: 0,
-      profile: { name: "", hood: "", avatar: "" },
-      kids: [],
-    };
-  };
-
-  const session = loadSession();
-
-  // Onboarding state
-  const [obStep, setObStep] = useState(session.obStep); // 0=welcome, 1=about, 2=kids, 3=waitlist, 4=app
-  const [profile, setProfile] = useState(session.profile);
-  const [kids, setKids] = useState(session.kids);
-  const [showTallySuccess, setShowTallySuccess] = useState(false);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const isFirstRender = useRef(true);
-
-  // App state
-  const [view, setView] = useState("list");
-  const [activeHood, setActiveHood] = useState("All");
-  const [activePin, setActivePin] = useState(null);
-  const [showDetail, setShowDetail] = useState(null);
-  const [showCreate, setShowCreate] = useState(false);
-  const [showTowns, setShowTowns] = useState(false);
-  const [activeTowns, setActiveTowns] = useState(["portland"]);
-  const [joined, setJoined] = useState({});
-  const [selectedAges, setSelectedAges] = useState([]);
-  const [selectedVenue, setSelectedVenue] = useState(null);
-  const [showAddVenue, setShowAddVenue] = useState(false);
-  const [newVenue, setNewVenue] = useState({ name:"", addr:"", type:"", perks:[] });
-  const [userVenues, setUserVenues] = useState([]);
-  const [formData, setFormData] = useState({ title: "", date: "", time: "" });
-  const [created, setCreated] = useState([]);
-  const [activeNav, setActiveNav] = useState("home");
-  const [myDatesTab, setMyDatesTab] = useState("going");
-  const [showToast, setShowToast] = useState(false);
-
-  const allVenues = [...PORTLAND_VENUES, ...userVenues];
-  const allDates = [...created, ...PLAYDATES];
-  const filtered = activeHood === "All" ? allDates : allDates.filter(p => p.hood === activeHood);
-  const activePd = activePin != null ? allDates.find(p => p.id === activePin) : null;
-  const isPreviewingApp = obStep === 4;
-  const goingDates = allDates.filter(pd => joined[pd.id] === true);
-  const hostingDates = created;
-
-  const toggleTown = id => setActiveTowns(t => t.includes(id) ? (t.length > 1 ? t.filter(x=>x!==id) : t) : [...t, id]);
-
-  const townLabel = activeTowns.length === 1 && activeTowns[0] === "portland"
-    ? `📍 ${profile.hood || "Portland, ME"}`
-    : `📍 ${activeTowns.length} areas selected`;
-
-  const saveNewVenue = () => {
-    if (newVenue.name && newVenue.addr && newVenue.type) {
-      const vt = VENUE_TYPES.find(v => v.type === newVenue.type);
-      setUserVenues(v => [...v, { ...newVenue, emoji: vt?.icon || "📍", pending: true, town:"Greater Portland" }]);
-      setSelectedVenue(newVenue.name);
-      setNewVenue({ name:"", addr:"", type:"", perks:[] });
-      setShowAddVenue(false);
-    }
-  };
-
-  useEffect(() => {
-    if (obStep >= 3) {
-      localStorage.setItem(
-        "ppd_beta_session",
-        JSON.stringify({ obStep, profile, kids })
-      );
-    }
-  }, [obStep, profile, kids]);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    if (obStep === 4) {
-      setShowPreviewModal(true);
-    }
-  }, [obStep]);
-
-  const isCreateDisabled = !formData.title || !selectedVenue;
-  let submitHelper = "";
-  if (!formData.title && !selectedVenue) {
-    submitHelper = "Add a name and choose a venue to continue";
-  } else if (!formData.title) {
-    submitHelper = "Add a playdate name to continue";
-  } else if (!selectedVenue) {
-    submitHelper = "Choose a venue to continue";
+  } catch (e) {
+    // ignore parse errors
   }
-
-  const handleCreate = () => {
-    if (!formData.title || !selectedVenue) {
-      return;
-    }
-    const v = allVenues.find(v => v.name === selectedVenue);
-    const hoodName = v?.hood || profile.hood || "Portland";
-    const pin = HOOD_PIN_DEFAULTS[hoodName] || HOOD_PIN_DEFAULTS.default;
-    setCreated(p => [
-      {
-        id: Date.now(),
-        emoji: v?.emoji || "🌟",
-        bg: "linear-gradient(135deg,#FDF0E8,#EDB99E)",
-        title: formData.title,
-        venue: v?.name || selectedVenue,
-        addr: v?.addr || "",
-        hood: hoodName,
-        ages: selectedAges.join(", ") || "All ages",
-        date: `${formData.date} · ${formData.time}`,
-        weather: "📍 Your event",
-        attendees: ["🧡"],
-        count: 1,
-        host: profile.name || "You",
-        description: "New playdate!",
-        x: pin.x,
-        y: pin.y,
-      },
-      ...p,
-    ]);
-    setShowCreate(false);
-    setFormData({ title:"", date:"", time:"" });
-    setSelectedAges([]);
-    setSelectedVenue(null);
-    setShowAddVenue(false);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+  return {
+    obStep: 0,
+    profile: { name: "", hood: "", avatar: "" },
+    kids: [],
   };
+}
 
-  function MainApp() {
-    // ── ONBOARDING ──
-    if (obStep === 0) return <><style>{styles}</style><WelcomeScreen onNext={() => setObStep(1)} /></>;
-    if (obStep === 1) return <><style>{styles}</style><AboutYouScreen onNext={() => setObStep(2)} onBack={() => setObStep(0)} profile={profile} setProfile={setProfile} /></>;
-    if (obStep === 2) return <><style>{styles}</style><YourKidsScreen onDone={() => setObStep(3)} onBack={() => setObStep(1)} profile={profile} kids={kids} setKids={setKids} /></>;
-    if (obStep === 3) return <><style>{styles}</style><WaitlistScreen profile={profile} onPreview={() => setObStep(4)} onFormSubmitted={() => setShowTallySuccess(true)} showTallySuccess={showTallySuccess} /></>;
+function MainApp({
+  obStep, setObStep, profile, setProfile, kids, setKids,
+  showTallySuccess, setShowTallySuccess, showPreviewModal, setShowPreviewModal,
+  view, setView, activeHood, setActiveHood, activePin, setActivePin,
+  showDetail, setShowDetail, showCreate, setShowCreate, showTowns, setShowTowns,
+  activeTowns, toggleTown, townLabel, joined, setJoined,
+  selectedAges, setSelectedAges, selectedVenue, setSelectedVenue,
+  showAddVenue, setShowAddVenue, newVenue, setNewVenue, setUserVenues,
+  formData, setFormData, created, setCreated, activeNav, setActiveNav,
+  myDatesTab, setMyDatesTab, showToast, setShowToast,
+  allVenues, allDates, filtered, activePd, goingDates, hostingDates,
+  isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
+}) {
+  // ── ONBOARDING ──
+  if (obStep === 0) return <><style>{styles}</style><WelcomeScreen onNext={() => setObStep(1)} /></>;
+  if (obStep === 1) return <><style>{styles}</style><AboutYouScreen onNext={() => setObStep(2)} onBack={() => setObStep(0)} profile={profile} setProfile={setProfile} /></>;
+  if (obStep === 2) return <><style>{styles}</style><YourKidsScreen onDone={() => setObStep(3)} onBack={() => setObStep(1)} profile={profile} kids={kids} setKids={setKids} /></>;
+  if (obStep === 3) return <><style>{styles}</style><WaitlistScreen profile={profile} onPreview={() => setObStep(4)} onFormSubmitted={() => setShowTallySuccess(true)} showTallySuccess={showTallySuccess} /></>;
 
-    // ── MAIN APP ──
-    return (
-      <>
-        <style>{styles}</style>
-        <div className="app">
+  // ── MAIN APP ──
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="app">
 
         {/* TOP BAR */}
         <div className="topbar">
@@ -1409,7 +1300,7 @@ export default function PortlandPlayDates() {
               padding: "6px 24px 0",
               lineHeight: 1.5
             }}>
-              Map shows Portland area only during beta. 
+              Map shows Portland area only during beta.
               Full Greater Portland map coming soon.
             </div>
             <div style={{ padding:"20px 24px 0" }}>
@@ -1536,17 +1427,17 @@ export default function PortlandPlayDates() {
         )}
 
         {showPreviewModal && (
-          <div className="modal-overlay" 
+          <div className="modal-overlay"
             onClick={() => setShowPreviewModal(false)}>
-            <div className="preview-modal" 
+            <div className="preview-modal"
               onClick={e => e.stopPropagation()}>
               <span className="preview-modal-emoji">👀</span>
               <div className="preview-modal-title">
                 You're previewing<br />PlayDates
               </div>
               <div className="preview-modal-sub">
-                Poke around and get a feel for what's coming 
-                to Portland this spring. Everything here is 
+                Poke around and get a feel for what's coming
+                to Portland this spring. Everything here is
                 a preview — playdates are not live yet.
               </div>
               <div className="preview-modal-pills">
@@ -1564,7 +1455,7 @@ export default function PortlandPlayDates() {
                   </div>
                 ))}
               </div>
-              <button 
+              <button
                 className="ob-btn-primary"
                 onClick={() => setShowPreviewModal(false)}
               >
@@ -1760,13 +1651,190 @@ export default function PortlandPlayDates() {
         )}
       </div>
     </>
-    );
+  );
+}
+
+export default function PortlandPlayDates() {
+
+  // Onboarding state
+  const [obStep, setObStep] = useState(() => loadSession().obStep); // 0=welcome, 1=about, 2=kids, 3=waitlist, 4=app
+  const [profile, setProfile] = useState(() => loadSession().profile);
+  const [kids, setKids] = useState(() => loadSession().kids);
+  const [showTallySuccess, setShowTallySuccess] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const isFirstRender = useRef(true);
+
+  // App state
+  const [view, setView] = useState("list");
+  const [activeHood, setActiveHood] = useState("All");
+  const [activePin, setActivePin] = useState(null);
+  const [showDetail, setShowDetail] = useState(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [showTowns, setShowTowns] = useState(false);
+  const [activeTowns, setActiveTowns] = useState(["portland"]);
+  const [joined, setJoined] = useState({});
+  const [selectedAges, setSelectedAges] = useState([]);
+  const [selectedVenue, setSelectedVenue] = useState(null);
+  const [showAddVenue, setShowAddVenue] = useState(false);
+  const [newVenue, setNewVenue] = useState({ name:"", addr:"", type:"", perks:[] });
+  const [userVenues, setUserVenues] = useState([]);
+  const [formData, setFormData] = useState({ title: "", date: "", time: "" });
+  const [created, setCreated] = useState([]);
+  const [activeNav, setActiveNav] = useState("home");
+  const [myDatesTab, setMyDatesTab] = useState("going");
+  const [showToast, setShowToast] = useState(false);
+
+  const allVenues = [...PORTLAND_VENUES, ...userVenues];
+  const allDates = [...created, ...PLAYDATES];
+  const filtered = activeHood === "All" ? allDates : allDates.filter(p => p.hood === activeHood);
+  const activePd = activePin != null ? allDates.find(p => p.id === activePin) : null;
+  const isPreviewingApp = obStep === 4;
+  const goingDates = allDates.filter(pd => joined[pd.id] === true);
+  const hostingDates = created;
+
+  const toggleTown = id => setActiveTowns(t => t.includes(id) ? (t.length > 1 ? t.filter(x=>x!==id) : t) : [...t, id]);
+
+  const townLabel = activeTowns.length === 1 && activeTowns[0] === "portland"
+    ? `📍 ${profile.hood || "Portland, ME"}`
+    : `📍 ${activeTowns.length} areas selected`;
+
+  const saveNewVenue = () => {
+    if (newVenue.name && newVenue.addr && newVenue.type) {
+      const vt = VENUE_TYPES.find(v => v.type === newVenue.type);
+      setUserVenues(v => [...v, { ...newVenue, emoji: vt?.icon || "📍", pending: true, town:"Greater Portland" }]);
+      setSelectedVenue(newVenue.name);
+      setNewVenue({ name:"", addr:"", type:"", perks:[] });
+      setShowAddVenue(false);
+    }
+  };
+
+  useEffect(() => {
+    if (obStep >= 3) {
+      localStorage.setItem(
+        "ppd_beta_session",
+        JSON.stringify({ obStep, profile, kids })
+      );
+    }
+  }, [obStep, profile, kids]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (obStep === 4) {
+      setShowPreviewModal(true);
+    }
+  }, [obStep]);
+
+  const isCreateDisabled = !formData.title || !selectedVenue;
+  let submitHelper = "";
+  if (!formData.title && !selectedVenue) {
+    submitHelper = "Add a name and choose a venue to continue";
+  } else if (!formData.title) {
+    submitHelper = "Add a playdate name to continue";
+  } else if (!selectedVenue) {
+    submitHelper = "Choose a venue to continue";
   }
+
+  const handleCreate = () => {
+    if (!formData.title || !selectedVenue) {
+      return;
+    }
+    const v = allVenues.find(v => v.name === selectedVenue);
+    const hoodName = v?.hood || profile.hood || "Portland";
+    const pin = HOOD_PIN_DEFAULTS[hoodName] || HOOD_PIN_DEFAULTS.default;
+    setCreated(p => [
+      {
+        id: Date.now(),
+        emoji: v?.emoji || "🌟",
+        bg: "linear-gradient(135deg,#FDF0E8,#EDB99E)",
+        title: formData.title,
+        venue: v?.name || selectedVenue,
+        addr: v?.addr || "",
+        hood: hoodName,
+        ages: selectedAges.join(", ") || "All ages",
+        date: `${formData.date} · ${formData.time}`,
+        weather: "📍 Your event",
+        attendees: ["🧡"],
+        count: 1,
+        host: profile.name || "You",
+        description: "New playdate!",
+        x: pin.x,
+        y: pin.y,
+      },
+      ...p,
+    ]);
+    setShowCreate(false);
+    setFormData({ title:"", date:"", time:"" });
+    setSelectedAges([]);
+    setSelectedVenue(null);
+    setShowAddVenue(false);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   return (
     <Routes>
       <Route path="/success" element={<SuccessPage />} />
-      <Route path="*" element={<MainApp />} />
+      <Route path="*" element={<MainApp
+        obStep={obStep}
+        setObStep={setObStep}
+        profile={profile}
+        setProfile={setProfile}
+        kids={kids}
+        setKids={setKids}
+        showTallySuccess={showTallySuccess}
+        setShowTallySuccess={setShowTallySuccess}
+        showPreviewModal={showPreviewModal}
+        setShowPreviewModal={setShowPreviewModal}
+        view={view}
+        setView={setView}
+        activeHood={activeHood}
+        setActiveHood={setActiveHood}
+        activePin={activePin}
+        setActivePin={setActivePin}
+        showDetail={showDetail}
+        setShowDetail={setShowDetail}
+        showCreate={showCreate}
+        setShowCreate={setShowCreate}
+        showTowns={showTowns}
+        setShowTowns={setShowTowns}
+        activeTowns={activeTowns}
+        toggleTown={toggleTown}
+        townLabel={townLabel}
+        joined={joined}
+        setJoined={setJoined}
+        selectedAges={selectedAges}
+        setSelectedAges={setSelectedAges}
+        selectedVenue={selectedVenue}
+        setSelectedVenue={setSelectedVenue}
+        showAddVenue={showAddVenue}
+        setShowAddVenue={setShowAddVenue}
+        newVenue={newVenue}
+        setNewVenue={setNewVenue}
+        setUserVenues={setUserVenues}
+        formData={formData}
+        setFormData={setFormData}
+        created={created}
+        setCreated={setCreated}
+        activeNav={activeNav}
+        setActiveNav={setActiveNav}
+        myDatesTab={myDatesTab}
+        setMyDatesTab={setMyDatesTab}
+        showToast={showToast}
+        setShowToast={setShowToast}
+        allVenues={allVenues}
+        allDates={allDates}
+        filtered={filtered}
+        activePd={activePd}
+        goingDates={goingDates}
+        hostingDates={hostingDates}
+        isCreateDisabled={isCreateDisabled}
+        submitHelper={submitHelper}
+        handleCreate={handleCreate}
+        saveNewVenue={saveNewVenue}
+      />} />
     </Routes>
   );
 }
