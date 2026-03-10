@@ -1078,6 +1078,7 @@ function SuccessPage() {
                   profile: existing.profile || { name: "", hood: "", avatar: "" },
                   kids: existing.kids || [],
                 }));
+                localStorage.setItem("ppd_show_preview", "true");
                 navigate("/");
               }}
             >
@@ -1726,6 +1727,14 @@ export default function PortlandPlayDates() {
       setShowPreviewModal(true);
     }
   }, [obStep]);
+
+  useEffect(() => {
+    const shouldShowPreview = localStorage.getItem("ppd_show_preview") === "true";
+    if (shouldShowPreview) {
+      localStorage.removeItem("ppd_show_preview");
+      setShowPreviewModal(true);
+    }
+  }, []);
 
   const isCreateDisabled = !formData.title || !selectedVenue;
   let submitHelper = "";
