@@ -534,6 +534,8 @@ const styles = `
   .preview-modal {
     width: 100%;
     max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
     background: var(--warm-white);
     border-radius: 28px 28px 0 0;
     padding: 32px 28px 64px;
