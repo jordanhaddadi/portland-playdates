@@ -1072,14 +1072,12 @@ function SuccessPage() {
             <button
               className="ob-btn-primary"
               onClick={() => {
-                localStorage.setItem(
-                  "ppd_beta_session",
-                  JSON.stringify({
-                    obStep: 4,
-                    profile: { name: "", hood: "", avatar: "" },
-                    kids: [],
-                  })
-                );
+                const existing = JSON.parse(localStorage.getItem("ppd_beta_session") || "{}");
+                localStorage.setItem("ppd_beta_session", JSON.stringify({
+                  obStep: 4,
+                  profile: existing.profile || { name: "", hood: "", avatar: "" },
+                  kids: existing.kids || [],
+                }));
                 navigate("/");
               }}
             >
