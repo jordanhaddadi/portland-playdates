@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const FONT = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 
@@ -52,8 +52,8 @@ const styles = `
   .ob-blob3 { position: absolute; top: 50%; left: 50%; width: 120px; height: 120px; background: radial-gradient(circle, var(--sage) 0%, transparent 65%); opacity: 0.2; border-radius: 50%; transform: translate(-50%,-50%); }
   .ob-welcome-logo { text-align: center; }
   .ob-welcome-city { font-size: 11px; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; color: var(--ocean-light); margin-bottom: 8px; }
-  .ob-welcome-name { font-family: 'Fraunces', serif; font-size: 52px; font-weight: 700; color: white; letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
-  .ob-welcome-name span { color: var(--terracotta-light); }
+  .ob-welcome-name { font-family: 'Fraunces', serif; font-size: 52px; font-weight: 700; color: white; letter-spacing: -1px; line-height: 1; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 10px; }
+  .ob-welcome-name span { color: var(--charcoal); }
   .ob-welcome-anchor { font-size: 32px; margin-bottom: 20px; }
   .ob-welcome-tagline { font-family: 'Fraunces', serif; font-size: 18px; font-style: italic; color: rgba(255,255,255,0.6); line-height: 1.4; }
   .ob-welcome-bottom {
@@ -195,9 +195,31 @@ const styles = `
   .topbar { padding: 52px 24px 14px; background: var(--cream); position: sticky; top: 0; z-index: 10; }
   .topbar-inner { display: flex; align-items: center; justify-content: space-between; }
   .logo-city { font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--ocean); margin-bottom: 2px; }
-  .logo-name { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: var(--charcoal); letter-spacing: -0.5px; }
+  .logo-name { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: var(--charcoal); letter-spacing: -0.5px; display: inline-flex; align-items: center; gap: 10px; }
   .logo-name span { color: var(--terracotta); }
   .user-avatar-btn { width: 42px; height: 42px; border-radius: 50%; border: 2.5px solid var(--ocean-light); background: var(--ocean-pale); cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+
+  /* BETA BADGE */
+  .beta-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--terracotta-pale);
+    color: var(--terracotta);
+    border-radius: 100px;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1;
+    transform: translateY(-1px);
+    flex-shrink: 0;
+  }
+
+  .beta-badge-onboarding {
+    color: var(--charcoal);
+  }
 
   /* PERSONALIZED GREETING */
   .greeting-bar { margin: 0 24px 18px; background: white; border-radius: 18px; border: 1.5px solid var(--border); padding: 14px 18px; display: flex; align-items: center; gap: 14px; }
@@ -210,6 +232,103 @@ const styles = `
   .view-toggle { display: flex; margin: 0 24px 18px; background: white; border-radius: 14px; border: 1.5px solid var(--border); overflow: hidden; }
   .toggle-btn { flex: 1; padding: 10px; border: none; background: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.18s; }
   .toggle-btn.active { background: var(--charcoal); color: white; border-radius: 11px; margin: 3px; }
+
+  /* MY DATES */
+  .dates-tabs { display: flex; justify-content: center; padding: 0 24px 16px; }
+  .dates-tabs-inner { display: inline-flex; gap: 10px; }
+  .dates-tab {
+    background: white;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    border-radius: 100px;
+    padding: 9px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.12s, background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .dates-tab:hover { transform: scale(1.01); }
+  .dates-tab.active { background: var(--ocean); border-color: var(--ocean); color: white; }
+  .dates-count {
+    background: var(--terracotta-pale);
+    color: var(--terracotta);
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 100px;
+    padding: 2px 7px;
+    letter-spacing: 0.3px;
+  }
+  .dates-section { padding: 0 24px 100px; overflow-y: auto; max-height: calc(100vh - 290px); }
+  .date-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border-radius: 18px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: box-shadow 0.18s, transform 0.18s;
+  }
+  .date-row:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(30,43,47,0.08); }
+  .date-emoji {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .date-mid { flex: 1; min-width: 0; }
+  .date-title {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--charcoal);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+  .date-meta { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .date-venue { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .ghost-btn {
+    background: white;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    border-radius: 100px;
+    padding: 6px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .ghost-btn:hover { border-color: var(--ocean-light); color: var(--charcoal); }
+  .dates-empty { padding: 28px 24px 120px; text-align: center; }
+  .dates-empty-emoji { font-size: 46px; margin: 18px 0 10px; }
+  .dates-empty-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500; margin-bottom: 6px; }
+  .dates-empty-sub { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 18px; }
+  .dates-empty-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pill-cta {
+    border: none;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: transform 0.12s;
+  }
+  .pill-cta:hover { transform: scale(1.01); }
+  .pill-cta.browse { background: var(--ocean-pale); color: var(--ocean); }
+  .pill-cta.host { background: var(--terracotta); color: white; }
 
   .map-container { position: relative; margin: 0 24px; border-radius: 24px; overflow: hidden; border: 1.5px solid var(--border); background: #D4E8EF; height: 340px; }
   .map-svg { width: 100%; height: 100%; }
@@ -280,6 +399,7 @@ const styles = `
   .card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(30,43,47,0.1); }
   .card-img { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 42px; position: relative; }
   .card-weather { position: absolute; top: 10px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 100px; padding: 3px 10px; font-size: 11px; font-weight: 500; }
+  .card-comingsoon { position: absolute; top: 10px; left: 12px; background: var(--ocean); color: white; border-radius: 100px; padding: 3px 10px; font-size: 11px; font-weight: 500; }
   .card-body { padding: 14px 17px 16px; }
   .card-tags { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
   .tag { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px; }
@@ -297,6 +417,59 @@ const styles = `
   .join-btn { background: var(--terracotta); color: white; border: none; border-radius: 100px; padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
   .join-btn:hover { background: #B04830; }
   .join-btn.joined { background: var(--sage); }
+
+  /* WAITLIST */
+  .waitlist-wrap { flex: 1; display: flex; flex-direction: column; padding: 70px 28px 48px; position: relative; z-index: 1; }
+  .waitlist-top { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 18px; }
+  .waitlist-avatar { width: 46px; height: 46px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .waitlist-name { color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 500; }
+  .waitlist-card {
+    background: rgba(253,248,242,0.98);
+    border-radius: 28px;
+    padding: 26px 22px 22px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+    animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .waitlist-headline { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; color: var(--charcoal); letter-spacing: -0.8px; margin-bottom: 10px; }
+  .waitlist-subtext { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+  .waitlist-subtext strong { color: var(--charcoal); font-weight: 600; }
+  .waitlist-pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .waitlist-btn { width: 100%; background: var(--charcoal); color: white; border: none; border-radius: 18px; padding: 16px 18px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+  .waitlist-btn:hover { background: var(--terracotta); transform: scale(1.01); }
+
+  .tally-success-card {
+    background: rgba(253,248,242,0.98);
+    border-radius: 28px;
+    padding: 32px 24px 28px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+    animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    text-align: center;
+  }
+  .tally-success-emoji {
+    font-size: 52px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .tally-success-headline {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--charcoal);
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
+  }
+  .tally-success-sub {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .tally-success-sub strong {
+    color: var(--charcoal);
+    font-weight: 600;
+  }
 
   .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 420px; background: rgba(253,248,242,0.94); backdrop-filter: blur(12px); border-top: 1.5px solid var(--border); display: flex; align-items: center; padding: 12px 8px 24px; z-index: 20; }
   .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 6px; border-radius: 12px; border: none; background: none; transition: background 0.15s; }
@@ -328,6 +501,8 @@ const styles = `
   .age-chip.selected { background: var(--ocean-pale); border-color: var(--ocean); color: var(--ocean); }
   .submit-btn { width: 100%; background: var(--charcoal); color: white; border: none; border-radius: 16px; padding: 16px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 8px; transition: background 0.15s; }
   .submit-btn:hover { background: var(--terracotta); }
+  .submit-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  .submit-helper { font-size: 12px; color: var(--terracotta); text-align: center; margin-bottom: 8px; }
   .detail-img { width: 100%; height: 140px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 54px; margin-bottom: 16px; }
   .detail-title { font-family: 'Fraunces', serif; font-size: 23px; font-weight: 500; margin-bottom: 4px; line-height: 1.2; }
   .detail-host { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
@@ -336,6 +511,24 @@ const styles = `
   .rsvp-btn { width: 100%; background: var(--terracotta); color: white; border: none; border-radius: 16px; padding: 16px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 20px; transition: background 0.15s; }
   .rsvp-btn:hover { background: #B04830; }
   .rsvp-btn.going { background: var(--sage); }
+
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--charcoal);
+    color: white;
+    border-radius: 100px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: DM Sans, sans-serif;
+    z-index: 100;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(30,43,47,0.3);
+    animation: obFadeIn 0.3s ease;
+  }
 `;
 
 const AVATARS = ["👩","👨","👩‍🦱","👨‍🦱","👩‍🦰","👨‍🦰","👩‍🦳","👨‍🦳","🧑","👶"];
@@ -343,10 +536,10 @@ const KID_EMOJIS = ["🧒","👦","👧","🧒‍♂️","🧒‍♀️","⭐","
 const HOODS = ["All","East End","West End","Downtown","Back Cove","Bayside"];
 const AGE_GROUPS = ["0–1","1–2","2–3","3–4","4–5","5–6","6–8","8–10"];
 const PORTLAND_VENUES = [
-  { emoji:"🌊", name:"Eastern Prom Playground", addr:"Eastern Promenade, Munjoy Hill" },
-  { emoji:"🌳", name:"Deering Oaks Park", addr:"Park Ave, West End" },
-  { emoji:"🛝", name:"Payson Park Playground", addr:"Baxter Blvd, Back Cove" },
-  { emoji:"📚", name:"Portland Public Library", addr:"5 Monument Square, Downtown" },
+  { emoji:"🌊", name:"Eastern Prom Playground", addr:"Eastern Promenade, Munjoy Hill", town:"Portland", type:"Park" },
+  { emoji:"🌳", name:"Deering Oaks Park", addr:"Park Ave, West End", town:"Portland", type:"Park" },
+  { emoji:"🛝", name:"Payson Park Playground", addr:"Baxter Blvd, Back Cove", town:"Portland", type:"Park" },
+  { emoji:"📚", name:"Portland Public Library", addr:"5 Monument Square, Downtown", town:"Portland", type:"Library" },
   { emoji:"☕", name:"Bayside American Cafe", addr:"98 Portland St, Bayside", town:"Portland", type:"Café" },
   { emoji:"🌿", name:"Smalls Café", addr:"28 Brackett St, West End", town:"Portland", type:"Café" },
   { emoji:"🏖️", name:"Willard Beach", addr:"Shore Rd, South Portland", town:"South Portland", type:"Beach" },
@@ -392,14 +585,23 @@ const ALL_NEIGHBORHOODS = {
 };
 
 const PLAYDATES = [
-  { id:1, emoji:"🌊", bg:"linear-gradient(135deg,#EAF3F8,#C8DFE8)", title:"East End Morning Meetup", venue:"Eastern Prom Playground", addr:"Eastern Promenade, East End", hood:"East End", ages:"2–5 yrs", date:"Sat, Mar 14 · 10am", weather:"🌤 38°F", attendees:["🧡","💙","💛"], count:7, host:"Sarah M.", description:"Bundled-up playground fun with ocean views! Bring a thermos, parking on the street.", x:310, y:135 },
-  { id:2, emoji:"🌳", bg:"linear-gradient(135deg,#EEF4EF,#C8DBC9)", title:"Deering Oaks Duck Pond", venue:"Deering Oaks Park", addr:"Park Ave, West End", hood:"West End", ages:"1–4 yrs", date:"Sun, Mar 15 · 11am", weather:"🌥 42°F", attendees:["💜","🧡","💚"], count:5, host:"Jamie & Priya", description:"Feeding the ducks, running the paths, toddler chaos. We grab coffee after!", x:148, y:178 },
-  { id:3, emoji:"📚", bg:"linear-gradient(135deg,#FDF5EC,#EADCC8)", title:"Library Story Time + Hangout", venue:"Portland Public Library", addr:"5 Monument Square, Downtown", hood:"Downtown", ages:"0–4 yrs", date:"Tue, Mar 11 · 10:30am", weather:"🏛 Indoor", attendees:["💛","💙"], count:8, host:"Mia T.", description:"After story time we stay on the kids' floor to let littles play. Totally free!", x:195, y:228 },
-  { id:4, emoji:"🛝", bg:"linear-gradient(135deg,#F8F0EC,#E8D4C8)", title:"Payson Park + Back Cove Stroll", venue:"Payson Park Playground", addr:"Baxter Blvd, Back Cove", hood:"Back Cove", ages:"3–7 yrs", date:"Wed, Mar 12 · 9am", weather:"☀️ 45°F", attendees:["💛","💚","💙","🧡"], count:10, host:"Alex R.", description:"Fenced playground then optional Back Cove trail stroll. Chill pace for everyone.", x:130, y:75 },
-  { id:5, emoji:"☕", bg:"linear-gradient(135deg,#FDF8F0,#EDE0CC)", title:"Bayside Café Parent Coffee", venue:"Bayside American Cafe", addr:"98 Portland St, Bayside", hood:"Bayside", ages:"0–3 yrs", date:"Thu, Mar 13 · 8:30am", weather:"☕ Indoor", attendees:["💜","🧡"], count:6, host:"Dana K.", description:"Parents sip great coffee while babies & toddlers hang out. High chairs available!", x:235, y:148 },
+  { id:1, emoji:"🌊", bg:"linear-gradient(135deg,#EAF3F8,#C8DFE8)", title:"East End Morning Meetup", venue:"Eastern Prom Playground", addr:"Eastern Promenade, East End", hood:"East End", ages:"2–5 yrs", date:"Sat, Mar 14 · 10am", weather:"🌤 38°F", attendees:["🧡","💙","💛"], count:7, host:"Sarah M.", description:"Bundled-up playground fun with ocean views! Bring a thermos, parking on the street.", x:310, y:135, comingSoon:true },
+  { id:2, emoji:"🌳", bg:"linear-gradient(135deg,#EEF4EF,#C8DBC9)", title:"Deering Oaks Duck Pond", venue:"Deering Oaks Park", addr:"Park Ave, West End", hood:"West End", ages:"1–4 yrs", date:"Sun, Mar 15 · 11am", weather:"🌥 42°F", attendees:["💜","🧡","💚"], count:5, host:"Jamie & Priya", description:"Feeding the ducks, running the paths, toddler chaos. We grab coffee after!", x:148, y:178, comingSoon:true },
+  { id:3, emoji:"📚", bg:"linear-gradient(135deg,#FDF5EC,#EADCC8)", title:"Library Story Time + Hangout", venue:"Portland Public Library", addr:"5 Monument Square, Downtown", hood:"Downtown", ages:"0–4 yrs", date:"Tue, Mar 11 · 10:30am", weather:"🏛 Indoor", attendees:["💛","💙"], count:8, host:"Mia T.", description:"After story time we stay on the kids' floor to let littles play. Totally free!", x:195, y:228, comingSoon:true },
+  { id:4, emoji:"🛝", bg:"linear-gradient(135deg,#F8F0EC,#E8D4C8)", title:"Payson Park + Back Cove Stroll", venue:"Payson Park Playground", addr:"Baxter Blvd, Back Cove", hood:"Back Cove", ages:"3–7 yrs", date:"Wed, Mar 12 · 9am", weather:"☀️ 45°F", attendees:["💛","💚","💙","🧡"], count:10, host:"Alex R.", description:"Fenced playground then optional Back Cove trail stroll. Chill pace for everyone.", x:130, y:75, comingSoon:true },
+  { id:5, emoji:"☕", bg:"linear-gradient(135deg,#FDF8F0,#EDE0CC)", title:"Bayside Café Parent Coffee", venue:"Bayside American Cafe", addr:"98 Portland St, Bayside", hood:"Bayside", ages:"0–3 yrs", date:"Thu, Mar 13 · 8:30am", weather:"☕ Indoor", attendees:["💜","🧡"], count:6, host:"Dana K.", description:"Parents sip great coffee while babies & toddlers hang out. High chairs available!", x:235, y:148, comingSoon:true },
 ];
 
 const pinColor = hood => ({ "East End":"#2A5F7A","West End":"#6B9E6F","Downtown":"#C4583A","Back Cove":"#8B6DB0","Bayside":"#D4993A","Portland":"#C4583A" }[hood] || "#C4583A");
+
+const HOOD_PIN_DEFAULTS = {
+  "East End": { x: 305, y: 130 },
+  "West End": { x: 95, y: 185 },
+  "Downtown": { x: 200, y: 220 },
+  "Back Cove": { x: 140, y: 80 },
+  "Bayside": { x: 235, y: 150 },
+  default: { x: 200, y: 180 },
+};
 
 // ─── ONBOARDING SCREENS ───────────────────────────────────────────────────────
 
@@ -411,7 +613,7 @@ function WelcomeScreen({ onNext }) {
         <div className="ob-welcome-logo">
           <div className="ob-welcome-anchor">⚓</div>
           <div className="ob-welcome-city">Portland, Maine</div>
-          <div className="ob-welcome-name">Play<span>Dates</span></div>
+          <div className="ob-welcome-name">PlayDates <span className="beta-badge beta-badge-onboarding">Beta</span></div>
           <div className="ob-welcome-tagline">Find your kids'<br />people in Portland</div>
         </div>
       </div>
@@ -460,7 +662,98 @@ function WelcomeScreen({ onNext }) {
             </div>
           ))}
         </div>
-        <button className="ob-btn-primary" onClick={onNext}>Get Started →</button>
+        <button className="ob-btn-primary" onClick={onNext}>Join the Beta →</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── WAITLIST SCREEN ───────────────────────────────────────────────────────────
+
+function WaitlistScreen({ profile, onPreview }) {
+  const firstName = (profile?.name || "").trim().split(" ")[0] || "friend";
+  const avatar = profile?.avatar || "👩";
+
+  useEffect(() => {
+    if (document.getElementById("tally-js")) {
+      window.Tally?.loadEmbeds?.();
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "tally-js";
+    script.src = "https://tally.so/widgets/embed.js";
+    script.async = true;
+    script.onload = () => {
+      window.Tally?.loadEmbeds?.();
+    };
+    document.body.appendChild(script);
+  }, []);
+
+  return (
+    <div className="ob-screen ob-welcome">
+      <div className="ob-blob1" /><div className="ob-blob2" /><div className="ob-blob3" />
+      <div className="waitlist-wrap">
+        <div className="waitlist-top">
+          <div className="waitlist-avatar">{avatar}</div>
+          <div className="waitlist-name">Hey, {firstName}!</div>
+        </div>
+
+        <div className="waitlist-card">
+          <div className="waitlist-headline">You're on the list!</div>
+          <div className="waitlist-subtext">
+            Portland PlayDates is in private beta. Jordan will reach out to you personally at <strong>[jordanhaddadi@gmail.com]</strong> to confirm your spot and invite you in.
+          </div>
+
+          <div className="waitlist-pill-row">
+            <span className="tag tag-venue">Public spaces only</span>
+            <span className="tag tag-age">Age-matched</span>
+            <span className="tag tag-hood">Portland area</span>
+          </div>
+
+          <div style={{ fontSize:13, color:"var(--muted)", textAlign:"center", marginBottom:20, lineHeight:1.5 }}>
+            Spots are limited. Be one of the first 50 Portland families.
+          </div>
+
+          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+            <button
+              style={{
+                width:"100%",
+                background:"var(--terracotta)",
+                color:"white",
+                border:"none",
+                borderRadius:100,
+                padding:16,
+                fontSize:16,
+                fontWeight:600,
+                fontFamily:"DM Sans, sans-serif",
+                cursor:"pointer",
+              }}
+              data-tally-open="44kz95"
+              data-tally-width="400"
+              data-tally-overlay="1"
+              data-tally-emoji-text="🎉"
+              data-tally-emoji-animation="wave"
+            >
+              Reserve My Spot 🎉
+            </button>
+            <button
+              style={{
+                width:"100%",
+                background:"transparent",
+                border:"none",
+                color:"var(--muted)",
+                fontSize:14,
+                fontWeight:400,
+                padding:10,
+                fontFamily:"DM Sans, sans-serif",
+                cursor:"pointer",
+              }}
+              onClick={onPreview}
+            >
+              Preview the app first →
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -606,13 +899,112 @@ function YourKidsScreen({ onDone, onBack, profile, kids, setKids }) {
   );
 }
 
+// ─── MY DATES VIEW ─────────────────────────────────────────────────────────────
+
+function MyDatesView({
+  tab,
+  setTab,
+  goingDates,
+  hostingDates,
+  onOpenDetail,
+  onBrowsePlaydates,
+  onHostOne,
+  onCancelGoing,
+  onRemoveHosting,
+}) {
+  const goingCount = goingDates.length;
+  const hostingCount = hostingDates.length;
+
+  const activeDates = tab === "going" ? goingDates : hostingDates;
+  const emptyEmoji = tab === "going" ? "🌳" : "🌟";
+  const emptyTitle = tab === "going" ? "No playdates yet!" : "You have not hosted yet!";
+  const emptySub =
+    tab === "going"
+      ? "Browse nearby playdates and tap Join to save them here."
+      : "Ready to bring Portland parents together?";
+  const sectionLabel = tab === "going" ? "Your upcoming playdates" : "Playdates you are hosting";
+
+  return (
+    <>
+      <div className="dates-tabs">
+        <div className="dates-tabs-inner">
+          <button className={`dates-tab ${tab === "going" ? "active" : ""}`} onClick={() => setTab("going")}>
+            Going <span className="dates-count">({goingCount})</span>
+          </button>
+          <button className={`dates-tab ${tab === "hosting" ? "active" : ""}`} onClick={() => setTab("hosting")}>
+            Hosting <span className="dates-count">({hostingCount})</span>
+          </button>
+        </div>
+      </div>
+
+      {activeDates.length === 0 ? (
+        <div className="dates-empty">
+          <div className="dates-empty-emoji">{emptyEmoji}</div>
+          <div className="dates-empty-title">{emptyTitle}</div>
+          <div className="dates-empty-sub">{emptySub}</div>
+          <div className="dates-empty-actions">
+            <button className="pill-cta browse" onClick={onBrowsePlaydates}>Browse Playdates</button>
+            <button className="pill-cta host" onClick={onHostOne}>Host One</button>
+          </div>
+        </div>
+      ) : (
+        <div className="dates-section">
+          <div className="section-title" style={{ marginBottom: 12 }}>{sectionLabel}</div>
+          {activeDates.map(pd => (
+            <div key={pd.id} className="date-row" onClick={() => onOpenDetail(pd)}>
+              <div className="date-emoji" style={{ background: pd.bg }}>{pd.emoji}</div>
+              <div className="date-mid">
+                <div className="date-title">{pd.title}</div>
+                <div className="date-meta">{pd.date}</div>
+                <div className="date-venue">{pd.venue}</div>
+              </div>
+              {tab === "going" ? (
+                <button className="ghost-btn" onClick={e => { e.stopPropagation(); onCancelGoing(pd.id); }}>
+                  Cancel
+                </button>
+              ) : (
+                <button className="ghost-btn" onClick={e => { e.stopPropagation(); onRemoveHosting(pd.id); }}>
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 export default function PortlandPlayDates() {
+  const loadSession = () => {
+    try {
+      const saved = localStorage.getItem("ppd_beta_session");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          obStep: parsed.obStep || 0,
+          profile: parsed.profile || { name: "", hood: "", avatar: "" },
+          kids: parsed.kids || [],
+        };
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
+    return {
+      obStep: 0,
+      profile: { name: "", hood: "", avatar: "" },
+      kids: [],
+    };
+  };
+
+  const session = loadSession();
+
   // Onboarding state
-  const [obStep, setObStep] = useState(0); // 0=welcome, 1=about, 2=kids, 3=done
-  const [profile, setProfile] = useState({ name: "", hood: "", avatar: "" });
-  const [kids, setKids] = useState([]);
+  const [obStep, setObStep] = useState(session.obStep); // 0=welcome, 1=about, 2=kids, 3=waitlist, 4=app
+  const [profile, setProfile] = useState(session.profile);
+  const [kids, setKids] = useState(session.kids);
 
   // App state
   const [view, setView] = useState("list");
@@ -631,11 +1023,16 @@ export default function PortlandPlayDates() {
   const [formData, setFormData] = useState({ title: "", date: "", time: "" });
   const [created, setCreated] = useState([]);
   const [activeNav, setActiveNav] = useState("home");
+  const [myDatesTab, setMyDatesTab] = useState("going");
+  const [showToast, setShowToast] = useState(false);
 
   const allVenues = [...PORTLAND_VENUES, ...userVenues];
   const allDates = [...created, ...PLAYDATES];
   const filtered = activeHood === "All" ? allDates : allDates.filter(p => p.hood === activeHood);
   const activePd = activePin != null ? allDates.find(p => p.id === activePin) : null;
+  const isPreviewingApp = obStep === 4;
+  const goingDates = allDates.filter(pd => joined[pd.id] === true);
+  const hostingDates = created;
 
   const toggleTown = id => setActiveTowns(t => t.includes(id) ? (t.length > 1 ? t.filter(x=>x!==id) : t) : [...t, id]);
 
@@ -653,22 +1050,67 @@ export default function PortlandPlayDates() {
     }
   };
 
-  const handleCreate = () => {
-    if (formData.title && selectedVenue) {
-      const v = allVenues.find(v => v.name === selectedVenue);
-      setCreated(p => [{ id:Date.now(), emoji:v?.emoji||"🌟", bg:"linear-gradient(135deg,#FDF0E8,#EDB99E)", title:formData.title, venue:v?.name||selectedVenue, addr:v?.addr||"", hood:"Portland", ages:selectedAges.join(", ")||"All ages", date:`${formData.date} · ${formData.time}`, weather:"📍 Your event", attendees:["🧡"], count:1, host:profile.name||"You", description:"New playdate!", x:200+Math.random()*80, y:150+Math.random()*80 }, ...p]);
+  useEffect(() => {
+    if (obStep >= 3) {
+      localStorage.setItem(
+        "ppd_beta_session",
+        JSON.stringify({ obStep, profile, kids })
+      );
     }
+  }, [obStep, profile, kids]);
+
+  const isCreateDisabled = !formData.title || !selectedVenue;
+  let submitHelper = "";
+  if (!formData.title && !selectedVenue) {
+    submitHelper = "Add a name and choose a venue to continue";
+  } else if (!formData.title) {
+    submitHelper = "Add a playdate name to continue";
+  } else if (!selectedVenue) {
+    submitHelper = "Choose a venue to continue";
+  }
+
+  const handleCreate = () => {
+    if (!formData.title || !selectedVenue) {
+      return;
+    }
+    const v = allVenues.find(v => v.name === selectedVenue);
+    const hoodName = v?.hood || profile.hood || "Portland";
+    const pin = HOOD_PIN_DEFAULTS[hoodName] || HOOD_PIN_DEFAULTS.default;
+    setCreated(p => [
+      {
+        id: Date.now(),
+        emoji: v?.emoji || "🌟",
+        bg: "linear-gradient(135deg,#FDF0E8,#EDB99E)",
+        title: formData.title,
+        venue: v?.name || selectedVenue,
+        addr: v?.addr || "",
+        hood: hoodName,
+        ages: selectedAges.join(", ") || "All ages",
+        date: `${formData.date} · ${formData.time}`,
+        weather: "📍 Your event",
+        attendees: ["🧡"],
+        count: 1,
+        host: profile.name || "You",
+        description: "New playdate!",
+        x: pin.x,
+        y: pin.y,
+      },
+      ...p,
+    ]);
     setShowCreate(false);
     setFormData({ title:"", date:"", time:"" });
     setSelectedAges([]);
     setSelectedVenue(null);
     setShowAddVenue(false);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   // ── ONBOARDING ──
   if (obStep === 0) return <><style>{styles}</style><WelcomeScreen onNext={() => setObStep(1)} /></>;
   if (obStep === 1) return <><style>{styles}</style><AboutYouScreen onNext={() => setObStep(2)} onBack={() => setObStep(0)} profile={profile} setProfile={setProfile} /></>;
   if (obStep === 2) return <><style>{styles}</style><YourKidsScreen onDone={() => setObStep(3)} onBack={() => setObStep(1)} profile={profile} kids={kids} setKids={setKids} /></>;
+  if (obStep === 3) return <><style>{styles}</style><WaitlistScreen profile={profile} onPreview={() => setObStep(4)} /></>;
 
   // ── MAIN APP ──
   return (
@@ -681,9 +1123,29 @@ export default function PortlandPlayDates() {
           <div className="topbar-inner">
             <div>
               <div className="logo-city">⚓ Portland, Maine</div>
-              <div className="logo-name">Play<span>Dates</span></div>
+              <div className="logo-name">PlayDates <span className="beta-badge">Beta</span></div>
             </div>
-            <button className="user-avatar-btn" title="Profile">{profile.avatar || "👩"}</button>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <button
+                style={{
+                  fontSize:10,
+                  color:"var(--muted)",
+                  background:"none",
+                  border:"1px solid var(--border)",
+                  borderRadius:100,
+                  padding:"4px 10px",
+                  cursor:"pointer",
+                  fontFamily:"DM Sans, sans-serif",
+                }}
+                onClick={() => {
+                  localStorage.removeItem("ppd_beta_session");
+                  window.location.reload();
+                }}
+              >
+                Reset
+              </button>
+              <button className="user-avatar-btn" title="Profile">{profile.avatar || "👩"}</button>
+            </div>
           </div>
         </div>
 
@@ -702,13 +1164,30 @@ export default function PortlandPlayDates() {
         </div>
 
         {/* VIEW TOGGLE */}
-        <div className="view-toggle">
-          <button className={`toggle-btn ${view==="list"?"active":""}`} onClick={() => setView("list")}>☰ List</button>
-          <button className={`toggle-btn ${view==="map"?"active":""}`} onClick={() => { setView("map"); setActiveNav("search"); }}>🗺️ Map</button>
-        </div>
+        {activeNav !== "dates" && (
+          <div className="view-toggle">
+            <button className={`toggle-btn ${view==="list"?"active":""}`} onClick={() => setView("list")}>☰ List</button>
+            <button className={`toggle-btn ${view==="map"?"active":""}`} onClick={() => { setView("map"); setActiveNav("search"); }}>🗺️ Map</button>
+          </div>
+        )}
+
+        {/* ── MY DATES VIEW ── */}
+        {activeNav === "dates" && (
+          <MyDatesView
+            tab={myDatesTab}
+            setTab={setMyDatesTab}
+            goingDates={goingDates}
+            hostingDates={hostingDates}
+            onOpenDetail={pd => setShowDetail(pd)}
+            onBrowsePlaydates={() => { setActiveNav("home"); setView("list"); }}
+            onHostOne={() => setShowCreate(true)}
+            onCancelGoing={id => setJoined(j => ({ ...j, [id]: false }))}
+            onRemoveHosting={id => setCreated(p => p.filter(x => x.id !== id))}
+          />
+        )}
 
         {/* ── MAP VIEW ── */}
-        {view === "map" && (
+        {activeNav !== "dates" && view === "map" && (
           <div style={{ paddingBottom: 100 }}>
             <div className="map-container">
               <svg viewBox="0 0 420 360" className="map-svg">
@@ -782,7 +1261,7 @@ export default function PortlandPlayDates() {
                       </div>
                       <button className={`peek-join ${joined[activePd.id]?"joined":""}`}
                         onClick={e => { e.stopPropagation(); setJoined(j => ({...j,[activePd.id]:!j[activePd.id]})); }}>
-                        {joined[activePd.id]?"✓":"Join"}
+                        {joined[activePd.id] ? "✓" : "Join"}
                       </button>
                     </div>
                   </div>
@@ -793,6 +1272,16 @@ export default function PortlandPlayDates() {
               {[["East End","#2A5F7A"],["West End","#6B9E6F"],["Downtown","#C4583A"],["Back Cove","#8B6DB0"],["Bayside","#D4993A"]].map(([n,c]) => (
                 <div key={n} className="legend-item"><div className="legend-dot" style={{background:c}}/>{n}</div>
               ))}
+            </div>
+            <div style={{
+              fontSize: 11,
+              color: "var(--muted)",
+              textAlign: "center",
+              padding: "6px 24px 0",
+              lineHeight: 1.5
+            }}>
+              Map shows Portland area only during beta. 
+              Full Greater Portland map coming soon.
             </div>
             <div style={{ padding:"20px 24px 0" }}>
               <div className="section-title" style={{ marginBottom:14 }}>All Playdates</div>
@@ -814,7 +1303,7 @@ export default function PortlandPlayDates() {
         )}
 
         {/* ── LIST VIEW ── */}
-        {view === "list" && (
+        {activeNav !== "dates" && view === "list" && (
           <>
             <div className="location-bar">
               <div className="location-pill" onClick={() => setShowTowns(true)}>
@@ -844,7 +1333,11 @@ export default function PortlandPlayDates() {
             <div className="cards">
               {filtered.map(pd => (
                 <div key={pd.id} className="card" onClick={() => setShowDetail(pd)}>
-                  <div className="card-img" style={{background:pd.bg}}>{pd.emoji}<div className="card-weather">{pd.weather}</div></div>
+                  <div className="card-img" style={{background:pd.bg}}>
+                    {pd.emoji}
+                    {pd.comingSoon && <div className="card-comingsoon">Coming Soon</div>}
+                    <div className="card-weather">{pd.weather}</div>
+                  </div>
                   <div className="card-body">
                     <div className="card-tags">
                       <span className="tag tag-age">👶 {pd.ages}</span>
@@ -860,9 +1353,14 @@ export default function PortlandPlayDates() {
                         </div>
                         <span className="attendee-text">{pd.count} going</span>
                       </div>
-                      <button className={`join-btn ${joined[pd.id]?"joined":""}`}
-                        onClick={e => { e.stopPropagation(); setJoined(j=>({...j,[pd.id]:!j[pd.id]})); }}>
-                        {joined[pd.id]?"✓ Going!":"Join"}
+                      <button
+                        className={`join-btn ${joined[pd.id] ? "joined" : ""}`}
+                        onClick={e => {
+                          e.stopPropagation();
+                          setJoined(j => ({ ...j, [pd.id]: !j[pd.id] }));
+                        }}
+                      >
+                        {joined[pd.id] ? "✓ Going!" : "Join"}
                       </button>
                     </div>
                   </div>
@@ -892,11 +1390,21 @@ export default function PortlandPlayDates() {
           </div>
           {[{id:"dates",icon:"📅",label:"My Dates"},{id:"profile",icon:profile.avatar||"👩",label:"Profile"}].map(n => (
             <button key={n.id} className={`nav-item ${activeNav===n.id?"active":""}`}
-              onClick={() => { setActiveNav(n.id); if(n.id==="profile") setObStep(1); }}>
+              onClick={() => {
+                setActiveNav(n.id);
+                if (n.id === "profile") setObStep(1);
+                if (n.id === "dates") setMyDatesTab("going");
+              }}>
               <span className="nav-icon">{n.icon}</span><span className="nav-label">{n.label}</span>
             </button>
           ))}
         </div>
+
+        {showToast && (
+          <div className="toast">
+            Playdate posted! Check My Dates to see it.
+          </div>
+        )}
 
         {/* CREATE MODAL */}
         {showCreate && (
@@ -913,7 +1421,7 @@ export default function PortlandPlayDates() {
                 <label className="form-label">Choose a venue</label>
                 <div className="venue-suggestions">
                   {allVenues.map(v => (
-                    <button key={v.name} className={`venue-suggestion ${selectedVenue===v.name?"selected":""}`} onClick={() => { setSelectedVenue(v.name); setShowAddVenue(false); }}>
+                    <button type="button" key={v.name} className={`venue-suggestion ${selectedVenue===v.name?"selected":""}`} onClick={() => { setSelectedVenue(v.name); setShowAddVenue(false); }}>
                       <span className="venue-emoji">{v.emoji}</span>
                       <div style={{flex:1}}>
                         <div className="venue-name" style={{display:"flex",alignItems:"center",gap:6}}>
@@ -929,7 +1437,7 @@ export default function PortlandPlayDates() {
 
                 {/* ADD NEW VENUE */}
                 {!showAddVenue ? (
-                  <button className="add-venue-trigger" onClick={() => setShowAddVenue(true)}>
+                  <button type="button" className="add-venue-trigger" onClick={() => setShowAddVenue(true)}>
                     ＋ Don't see your spot? Add it
                   </button>
                 ) : (
@@ -949,7 +1457,7 @@ export default function PortlandPlayDates() {
                       <label className="form-label">Type of space</label>
                       <div className="venue-type-grid">
                         {VENUE_TYPES.map(t => (
-                          <button key={t.type} className={`venue-type-btn ${newVenue.type===t.type?"selected":""}`}
+                          <button type="button" key={t.type} className={`venue-type-btn ${newVenue.type===t.type?"selected":""}`}
                             onClick={() => setNewVenue(v=>({...v,type:t.type}))}>
                             <span style={{fontSize:18}}>{t.icon}</span>
                             {t.type}
@@ -961,7 +1469,7 @@ export default function PortlandPlayDates() {
                       <label className="form-label">Parent-friendly perks</label>
                       <div className="venue-perks">
                         {VENUE_PERKS.map(p => (
-                          <button key={p} className={`perk-chip ${newVenue.perks.includes(p)?"selected":""}`}
+                          <button type="button" key={p} className={`perk-chip ${newVenue.perks.includes(p)?"selected":""}`}
                             onClick={() => setNewVenue(v=>({...v,perks:v.perks.includes(p)?v.perks.filter(x=>x!==p):[...v.perks,p]}))}>
                             {p}
                           </button>
@@ -972,9 +1480,9 @@ export default function PortlandPlayDates() {
                       ⏳ Your venue will show as <strong>pending</strong> until 2 other parents use it for a playdate — then it's official!
                     </div>
                     <div style={{display:"flex",gap:8}}>
-                      <button style={{flex:"0 0 auto",background:"var(--border)",color:"var(--muted)",border:"none",borderRadius:12,padding:"10px 14px",fontFamily:"DM Sans,sans-serif",fontSize:13,cursor:"pointer"}}
+                      <button type="button" style={{flex:"0 0 auto",background:"var(--border)",color:"var(--muted)",border:"none",borderRadius:12,padding:"10px 14px",fontFamily:"DM Sans,sans-serif",fontSize:13,cursor:"pointer"}}
                         onClick={() => setShowAddVenue(false)}>Cancel</button>
-                      <button className="save-venue-btn" disabled={!newVenue.name||!newVenue.addr||!newVenue.type} onClick={saveNewVenue}>
+                      <button type="button" className="save-venue-btn" disabled={!newVenue.name||!newVenue.addr||!newVenue.type} onClick={saveNewVenue}>
                         Submit Venue →
                       </button>
                     </div>
@@ -995,10 +1503,26 @@ export default function PortlandPlayDates() {
               <div className="form-field">
                 <label className="form-label">Kids' ages welcome</label>
                 <div className="age-grid">
-                  {AGE_GROUPS.map(a => <button key={a} className={`age-chip ${selectedAges.includes(a)?"selected":""}`} onClick={() => setSelectedAges(p=>p.includes(a)?p.filter(x=>x!==a):[...p,a])}>{a}</button>)}
+                  {AGE_GROUPS.map(a => (
+                    <button
+                      type="button"
+                      key={a}
+                      className={`age-chip ${selectedAges.includes(a) ? "selected" : ""}`}
+                      onClick={() =>
+                        setSelectedAges(p => (p.includes(a) ? p.filter(x => x !== a) : [...p, a]))
+                      }
+                    >
+                      {a}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <button className="submit-btn" onClick={handleCreate}>Post Playdate →</button>
+              {isCreateDisabled && submitHelper && (
+                <div className="submit-helper">{submitHelper}</div>
+              )}
+              <button className="submit-btn" disabled={isCreateDisabled} onClick={handleCreate}>
+                Post Playdate →
+              </button>
             </div>
           </div>
         )}
