@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 
 const FONT = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 
@@ -985,6 +986,47 @@ function MyDatesView({
           ))}
         </div>
       )}
+    </>
+  );
+}
+
+// Tally redirects to /success after form submission
+function SuccessPage() {
+  const navigate = useNavigate();
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="ob-screen ob-welcome">
+        <div className="ob-blob1" />
+        <div className="ob-blob2" />
+        <div className="ob-blob3" />
+        <div className="waitlist-wrap">
+          <div className="tally-success-card">
+            <span className="tally-success-emoji">🎉</span>
+            <div className="tally-success-headline">You're in!</div>
+            <div className="tally-success-sub">
+              Jordan will be in touch within 48 hours 
+              to confirm your spot.
+            </div>
+            <button
+              className="ob-btn-primary"
+              onClick={() => {
+                localStorage.setItem(
+                  "ppd_beta_session",
+                  JSON.stringify({
+                    obStep: 4,
+                    profile: { name: "", hood: "", avatar: "" },
+                    kids: [],
+                  })
+                );
+                navigate("/");
+              }}
+            >
+              Preview the app →
+            </button>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
