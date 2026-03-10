@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 const FONT = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 
@@ -1053,7 +1053,6 @@ function MyDatesView({
 
 // Tally redirects to /success after form submission
 function SuccessPage() {
-  const navigate = useNavigate();
   return (
     <>
       <style>{styles}</style>
@@ -1079,7 +1078,7 @@ function SuccessPage() {
                   kids: existing.kids || [],
                 }));
                 localStorage.setItem("ppd_show_preview", "true");
-                navigate("/");
+                window.location.href = "/";
               }}
             >
               Preview the app →
