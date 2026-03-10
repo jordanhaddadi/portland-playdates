@@ -685,21 +685,8 @@ function WaitlistScreen({ profile, onPreview, onFormSubmitted, showTallySuccess 
     script.id = "tally-js";
     script.src = "https://tally.so/widgets/embed.js";
     script.async = true;
-    script.onload = () => {
-      window.Tally?.loadEmbeds?.();
-    };
+    script.onload = () => window.Tally?.loadEmbeds?.();
     document.body.appendChild(script);
-
-    const handleTallyMessage = (e) => {
-      if (e.data && e.data.isTally &&
-          e.data.event === "Tally.FormSubmitted") {
-        onFormSubmitted();
-      }
-    };
-    window.addEventListener("message", handleTallyMessage);
-    return () => {
-      window.removeEventListener("message", handleTallyMessage);
-    };
   }, []);
 
   return (
@@ -714,11 +701,9 @@ function WaitlistScreen({ profile, onPreview, onFormSubmitted, showTallySuccess 
         {showTallySuccess ? (
           <div className="tally-success-card">
             <span className="tally-success-emoji">🎉</span>
-            <div className="tally-success-headline">You're officially in!</div>
+            <div className="tally-success-headline">You're in!</div>
             <div className="tally-success-sub">
-              Thanks for joining the beta. Jordan will reach out to you personally at{" "}
-              <strong>{FOUNDER_EMAIL}</strong>{" "}
-              within 48 hours to confirm your spot and invite you in.
+              Jordan will be in touch within 48 hours.
             </div>
             <button className="ob-btn-primary" onClick={onPreview}>
               Preview the app →
@@ -728,7 +713,7 @@ function WaitlistScreen({ profile, onPreview, onFormSubmitted, showTallySuccess 
           <div className="waitlist-card">
             <div className="waitlist-headline">You're on the list!</div>
             <div className="waitlist-subtext">
-              Portland PlayDates is in private beta. Jordan will reach out to you personally at <strong>[{FOUNDER_EMAIL}]</strong> to confirm your spot and invite you in.
+              Portland PlayDates is in private beta. Jordan will personally review your signup and reach out within 48 hours to confirm your spot.
             </div>
 
             <div className="waitlist-pill-row">
@@ -1088,6 +1073,18 @@ export default function PortlandPlayDates() {
       );
     }
   }, [obStep, profile, kids]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("submitted") === "true") {
+      localStorage.setItem(
+        "ppd_beta_session",
+        JSON.stringify({ obStep: 4, profile: { name: "", hood: "", avatar: "" }, kids: [] })
+      );
+      window.history.replaceState({}, "", "/");
+      window.location.reload();
+    }
+  }, []);
 
   const isCreateDisabled = !formData.title || !selectedVenue;
   let submitHelper = "";
