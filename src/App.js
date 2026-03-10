@@ -531,6 +531,8 @@ const styles = `
   }
 `;
 
+const FOUNDER_EMAIL = "jordanhaddadi@gmail.com";
+
 const AVATARS = ["👩","👨","👩‍🦱","👨‍🦱","👩‍🦰","👨‍🦰","👩‍🦳","👨‍🦳","🧑","👶"];
 const KID_EMOJIS = ["🧒","👦","👧","🧒‍♂️","🧒‍♀️","⭐","🌟","🦊","🐻","🦁"];
 const HOODS = ["All","East End","West End","Downtown","Back Cove","Bayside"];
@@ -670,7 +672,7 @@ function WelcomeScreen({ onNext }) {
 
 // ─── WAITLIST SCREEN ───────────────────────────────────────────────────────────
 
-function WaitlistScreen({ profile, onPreview }) {
+function WaitlistScreen({ profile, onPreview, onFormSubmitted, showTallySuccess }) {
   const firstName = (profile?.name || "").trim().split(" ")[0] || "friend";
   const avatar = profile?.avatar || "👩";
 
@@ -687,6 +689,17 @@ function WaitlistScreen({ profile, onPreview }) {
       window.Tally?.loadEmbeds?.();
     };
     document.body.appendChild(script);
+
+    const handleTallyMessage = (e) => {
+      if (e.data && e.data.isTally &&
+          e.data.event === "Tally.FormSubmitted") {
+        onFormSubmitted();
+      }
+    };
+    window.addEventListener("message", handleTallyMessage);
+    return () => {
+      window.removeEventListener("message", handleTallyMessage);
+    };
   }, []);
 
   return (
@@ -698,62 +711,78 @@ function WaitlistScreen({ profile, onPreview }) {
           <div className="waitlist-name">Hey, {firstName}!</div>
         </div>
 
-        <div className="waitlist-card">
-          <div className="waitlist-headline">You're on the list!</div>
-          <div className="waitlist-subtext">
-            Portland PlayDates is in private beta. Jordan will reach out to you personally at <strong>[jordanhaddadi@gmail.com]</strong> to confirm your spot and invite you in.
-          </div>
-
-          <div className="waitlist-pill-row">
-            <span className="tag tag-venue">Public spaces only</span>
-            <span className="tag tag-age">Age-matched</span>
-            <span className="tag tag-hood">Portland area</span>
-          </div>
-
-          <div style={{ fontSize:13, color:"var(--muted)", textAlign:"center", marginBottom:20, lineHeight:1.5 }}>
-            Spots are limited. Be one of the first 50 Portland families.
-          </div>
-
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            <button
-              style={{
-                width:"100%",
-                background:"var(--terracotta)",
-                color:"white",
-                border:"none",
-                borderRadius:100,
-                padding:16,
-                fontSize:16,
-                fontWeight:600,
-                fontFamily:"DM Sans, sans-serif",
-                cursor:"pointer",
-              }}
-              data-tally-open="44kz95"
-              data-tally-width="400"
-              data-tally-overlay="1"
-              data-tally-emoji-text="🎉"
-              data-tally-emoji-animation="wave"
-            >
-              Reserve My Spot 🎉
-            </button>
-            <button
-              style={{
-                width:"100%",
-                background:"transparent",
-                border:"none",
-                color:"var(--muted)",
-                fontSize:14,
-                fontWeight:400,
-                padding:10,
-                fontFamily:"DM Sans, sans-serif",
-                cursor:"pointer",
-              }}
-              onClick={onPreview}
-            >
-              Preview the app first →
+        {showTallySuccess ? (
+          <div className="tally-success-card">
+            <span className="tally-success-emoji">🎉</span>
+            <div className="tally-success-headline">You're officially in!</div>
+            <div className="tally-success-sub">
+              Thanks for joining the beta. Jordan will reach out to you personally at{" "}
+              <strong>{FOUNDER_EMAIL}</strong>{" "}
+              within 48 hours to confirm your spot and invite you in.
+            </div>
+            <button className="ob-btn-primary" onClick={onPreview}>
+              Preview the app →
             </button>
           </div>
-        </div>
+        ) : (
+          <div className="waitlist-card">
+            <div className="waitlist-headline">You're on the list!</div>
+            <div className="waitlist-subtext">
+              Portland PlayDates is in private beta. Jordan will reach out to you personally at <strong>[{FOUNDER_EMAIL}]</strong> to confirm your spot and invite you in.
+            </div>
+
+            <div className="waitlist-pill-row">
+              <span className="tag tag-venue">Public spaces only</span>
+              <span className="tag tag-age">Age-matched</span>
+              <span className="tag tag-hood">Portland area</span>
+            </div>
+
+            <div style={{ fontSize:13, color:"var(--muted)", textAlign:"center", marginBottom:20, lineHeight:1.5 }}>
+              Spots are limited. Be one of the first 50 Portland families.
+            </div>
+
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <button
+                style={{
+                  width:"100%",
+                  background:"var(--terracotta)",
+                  color:"white",
+                  border:"none",
+                  borderRadius:100,
+                  padding:16,
+                  fontSize:16,
+                  fontWeight:600,
+                  fontFamily:"DM Sans, sans-serif",
+                  cursor:"pointer",
+                }}
+                data-tally-open="44kz95"
+                data-tally-width="400"
+                data-tally-overlay="1"
+                data-tally-emoji-text="🎉"
+                data-tally-emoji-animation="wave"
+                data-tally-hide-title="1"
+              >
+                Reserve My Spot 🎉
+              </button>
+              <button
+                style={{
+                  width:"100%",
+                  background:"transparent",
+                  border:"none",
+                  color:"var(--muted)",
+                  fontSize:14,
+                  fontWeight:400,
+                  padding:10,
+                  fontFamily:"DM Sans, sans-serif",
+                  cursor:"pointer",
+                }}
+                onClick={onPreview}
+              >
+                Preview the app first →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1005,6 +1034,7 @@ export default function PortlandPlayDates() {
   const [obStep, setObStep] = useState(session.obStep); // 0=welcome, 1=about, 2=kids, 3=waitlist, 4=app
   const [profile, setProfile] = useState(session.profile);
   const [kids, setKids] = useState(session.kids);
+  const [showTallySuccess, setShowTallySuccess] = useState(false);
 
   // App state
   const [view, setView] = useState("list");
@@ -1110,7 +1140,7 @@ export default function PortlandPlayDates() {
   if (obStep === 0) return <><style>{styles}</style><WelcomeScreen onNext={() => setObStep(1)} /></>;
   if (obStep === 1) return <><style>{styles}</style><AboutYouScreen onNext={() => setObStep(2)} onBack={() => setObStep(0)} profile={profile} setProfile={setProfile} /></>;
   if (obStep === 2) return <><style>{styles}</style><YourKidsScreen onDone={() => setObStep(3)} onBack={() => setObStep(1)} profile={profile} kids={kids} setKids={setKids} /></>;
-  if (obStep === 3) return <><style>{styles}</style><WaitlistScreen profile={profile} onPreview={() => setObStep(4)} /></>;
+  if (obStep === 3) return <><style>{styles}</style><WaitlistScreen profile={profile} onPreview={() => setObStep(4)} onFormSubmitted={() => setShowTallySuccess(true)} showTallySuccess={showTallySuccess} /></>;
 
   // ── MAIN APP ──
   return (
