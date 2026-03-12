@@ -51,6 +51,8 @@ export const styles = `
   .ob-welcome-city { font-size: 11px; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; color: var(--ocean-light); margin-bottom: 8px; }
   .ob-welcome-name { font-family: 'Fraunces', serif; font-size: 52px; font-weight: 700; color: white; letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
   .ob-welcome-name span { color: var(--terracotta-light); }
+  .beta-badge { background: var(--terracotta); color: white; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; vertical-align: middle; margin-left: 6px; letter-spacing: 0.5px; font-family: 'DM Sans', sans-serif; }
+  .beta-badge-onboarding { background: rgba(196,88,58,0.2); color: var(--terracotta-light); }
   .ob-welcome-anchor { font-size: 32px; margin-bottom: 20px; }
   .ob-welcome-tagline { font-family: 'Fraunces', serif; font-size: 18px; font-style: italic; color: rgba(255,255,255,0.6); line-height: 1.4; }
   .ob-welcome-bottom {
@@ -193,7 +195,7 @@ export const styles = `
   .topbar-inner { display: flex; align-items: center; justify-content: space-between; }
   .logo-city { font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--ocean); margin-bottom: 2px; }
   .logo-name { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: var(--charcoal); letter-spacing: -0.5px; }
-  .logo-name span { color: var(--terracotta); }
+  .logo-name > span:not(.beta-badge) { color: var(--terracotta); }
   .user-avatar-btn { width: 42px; height: 42px; border-radius: 50%; border: 2.5px solid var(--ocean-light); background: var(--ocean-pale); cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
 
   /* PERSONALIZED GREETING */
