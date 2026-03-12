@@ -377,7 +377,7 @@ function MainApp({
   );
 }
 
-export default function PortlandPlayDates() {
+export default function App() {
 
   // Onboarding state
   const [obStep, setObStep] = useState(() => loadSession().obStep); // 0=welcome, 1=about, 2=kids, 3=waitlist, 4=app
