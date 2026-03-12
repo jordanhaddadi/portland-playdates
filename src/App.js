@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
 import { FOUNDER_EMAIL, AVATARS, KID_EMOJIS, HOODS, AGE_GROUPS, PORTLAND_VENUES, TOWNS_NEARBY, VENUE_TYPES, VENUE_PERKS, ALL_NEIGHBORHOODS, PLAYDATES, HOOD_PIN_DEFAULTS, pinColor } from './constants';
 import { FONT, styles } from './styles/index';
+import { loadSession } from './lib/session';
 import { WelcomeScreen } from './components/onboarding/WelcomeScreen';
 import { AboutYouScreen } from './components/onboarding/AboutYouScreen';
 import { YourKidsScreen } from './components/onboarding/YourKidsScreen';
@@ -14,27 +15,6 @@ import { TownsModal } from './components/modals/TownsModal';
 import { PreviewModal } from './components/modals/PreviewModal';
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
-
-function loadSession() {
-  try {
-    const saved = localStorage.getItem("ppd_beta_session");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return {
-        obStep: parsed.obStep || 0,
-        profile: parsed.profile || { name: "", hood: "", avatar: "" },
-        kids: parsed.kids || [],
-      };
-    }
-  } catch (e) {
-    // ignore parse errors
-  }
-  return {
-    obStep: 0,
-    profile: { name: "", hood: "", avatar: "" },
-    kids: [],
-  };
-}
 
 function MainApp({
   obStep, setObStep, profile, setProfile, kids, setKids,
