@@ -8,6 +8,10 @@ import { YourKidsScreen } from './components/onboarding/YourKidsScreen';
 import { WaitlistScreen } from './components/onboarding/WaitlistScreen';
 import { MyDatesView } from './components/MyDatesView';
 import { SuccessPage } from './components/SuccessPage';
+import { CreateModal } from './components/modals/CreateModal';
+import { DetailModal } from './components/modals/DetailModal';
+import { TownsModal } from './components/modals/TownsModal';
+import { PreviewModal } from './components/modals/PreviewModal';
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
@@ -350,229 +354,44 @@ function MainApp({
           </div>
         )}
 
-        {showPreviewModal && (
-          <div className="modal-overlay"
-            onClick={() => setShowPreviewModal(false)}>
-            <div className="preview-modal"
-              onClick={e => e.stopPropagation()}>
-              <span className="preview-modal-emoji">👀</span>
-              <div className="preview-modal-title">
-                You're previewing<br />PlayDates
-              </div>
-              <div className="preview-modal-sub">
-                Poke around and get a feel for what's coming
-                to Portland this spring. Everything here is
-                a preview — playdates are not live yet.
-              </div>
-              <div className="preview-modal-pills">
-                {[
-                  { icon:"🗺️", text:"Browse the map", sub:"See where playdates will happen" },
-                  { icon:"🛝", text:"Explore venues", sub:"Parks, libraries, and cafés near you" },
-                  { icon:"📅", text:"Host a playdate", sub:"Try creating one to see how it works" },
-                ].map(p => (
-                  <div key={p.text} className="preview-modal-pill">
-                    <span className="preview-modal-pill-icon">{p.icon}</span>
-                    <div>
-                      <div>{p.text}</div>
-                      <div className="preview-modal-pill-sub">{p.sub}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                className="ob-btn-primary"
-                onClick={() => setShowPreviewModal(false)}
-              >
-                Let's explore 🌊
-              </button>
-            </div>
-          </div>
-        )}
+        <PreviewModal
+          showPreviewModal={showPreviewModal}
+          setShowPreviewModal={setShowPreviewModal}
+        />
 
-        {/* CREATE MODAL */}
-        {showCreate && (
-          <div className="modal-overlay" onClick={() => { setShowCreate(false); setShowAddVenue(false); }}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-handle"/>
-              <h2>Host a Playdate ⚓</h2>
-              <div className="form-field">
-                <label className="form-label">Playdate name</label>
-                <input className="form-input" placeholder="e.g. Deering Oaks Duck Walk"
-                  value={formData.title} onChange={e => setFormData(f=>({...f,title:e.target.value}))}/>
-              </div>
-              <div className="form-field">
-                <label className="form-label">Choose a venue</label>
-                <div className="venue-suggestions">
-                  {allVenues.map(v => (
-                    <button type="button" key={v.name} className={`venue-suggestion ${selectedVenue===v.name?"selected":""}`} onClick={() => { setSelectedVenue(v.name); setShowAddVenue(false); }}>
-                      <span className="venue-emoji">{v.emoji}</span>
-                      <div style={{flex:1}}>
-                        <div className="venue-name" style={{display:"flex",alignItems:"center",gap:6}}>
-                          {v.name}
-                          {v.pending && <span className="pending-badge">⏳ Pending</span>}
-                        </div>
-                        <div className="venue-addr">{v.addr}{v.town && v.town !== "Portland" ? ` · ${v.town}` : ""}</div>
-                      </div>
-                      {selectedVenue===v.name && <span style={{color:"var(--ocean)",fontWeight:600,flexShrink:0}}>✓</span>}
-                    </button>
-                  ))}
-                </div>
+        <CreateModal
+          showCreate={showCreate}
+          setShowCreate={setShowCreate}
+          showAddVenue={showAddVenue}
+          setShowAddVenue={setShowAddVenue}
+          formData={formData}
+          setFormData={setFormData}
+          allVenues={allVenues}
+          selectedVenue={selectedVenue}
+          setSelectedVenue={setSelectedVenue}
+          newVenue={newVenue}
+          setNewVenue={setNewVenue}
+          saveNewVenue={saveNewVenue}
+          selectedAges={selectedAges}
+          setSelectedAges={setSelectedAges}
+          isCreateDisabled={isCreateDisabled}
+          submitHelper={submitHelper}
+          handleCreate={handleCreate}
+        />
 
-                {/* ADD NEW VENUE */}
-                {!showAddVenue ? (
-                  <button type="button" className="add-venue-trigger" onClick={() => setShowAddVenue(true)}>
-                    ＋ Don't see your spot? Add it
-                  </button>
-                ) : (
-                  <div className="add-venue-form">
-                    <div style={{fontFamily:"Fraunces,serif",fontSize:16,fontWeight:500,marginBottom:14,color:"var(--ocean)"}}>Add a new venue 📍</div>
-                    <div className="form-field" style={{marginBottom:12}}>
-                      <label className="form-label">Venue name</label>
-                      <input className="form-input" placeholder="e.g. Mackworth Island Trail"
-                        value={newVenue.name} onChange={e => setNewVenue(v=>({...v,name:e.target.value}))} style={{fontSize:14}}/>
-                    </div>
-                    <div className="form-field" style={{marginBottom:12}}>
-                      <label className="form-label">Address or area</label>
-                      <input className="form-input" placeholder="e.g. Andrews Ave, Falmouth"
-                        value={newVenue.addr} onChange={e => setNewVenue(v=>({...v,addr:e.target.value}))} style={{fontSize:14}}/>
-                    </div>
-                    <div className="form-field" style={{marginBottom:12}}>
-                      <label className="form-label">Type of space</label>
-                      <div className="venue-type-grid">
-                        {VENUE_TYPES.map(t => (
-                          <button type="button" key={t.type} className={`venue-type-btn ${newVenue.type===t.type?"selected":""}`}
-                            onClick={() => setNewVenue(v=>({...v,type:t.type}))}>
-                            <span style={{fontSize:18}}>{t.icon}</span>
-                            {t.type}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="form-field" style={{marginBottom:14}}>
-                      <label className="form-label">Parent-friendly perks</label>
-                      <div className="venue-perks">
-                        {VENUE_PERKS.map(p => (
-                          <button type="button" key={p} className={`perk-chip ${newVenue.perks.includes(p)?"selected":""}`}
-                            onClick={() => setNewVenue(v=>({...v,perks:v.perks.includes(p)?v.perks.filter(x=>x!==p):[...v.perks,p]}))}>
-                            {p}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div style={{fontSize:11,color:"var(--ocean)",marginBottom:12,lineHeight:1.5}}>
-                      ⏳ Your venue will show as <strong>pending</strong> until 2 other parents use it for a playdate — then it's official!
-                    </div>
-                    <div style={{display:"flex",gap:8}}>
-                      <button type="button" style={{flex:"0 0 auto",background:"var(--border)",color:"var(--muted)",border:"none",borderRadius:12,padding:"10px 14px",fontFamily:"DM Sans,sans-serif",fontSize:13,cursor:"pointer"}}
-                        onClick={() => setShowAddVenue(false)}>Cancel</button>
-                      <button type="button" className="save-venue-btn" disabled={!newVenue.name||!newVenue.addr||!newVenue.type} onClick={saveNewVenue}>
-                        Submit Venue →
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+        <TownsModal
+          showTowns={showTowns}
+          setShowTowns={setShowTowns}
+          activeTowns={activeTowns}
+          toggleTown={toggleTown}
+        />
 
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
-                <div className="form-field" style={{marginBottom:0}}>
-                  <label className="form-label">Date</label>
-                  <input type="date" className="form-input" value={formData.date} onChange={e => setFormData(f=>({...f,date:e.target.value}))}/>
-                </div>
-                <div className="form-field" style={{marginBottom:0}}>
-                  <label className="form-label">Time</label>
-                  <input type="time" className="form-input" value={formData.time} onChange={e => setFormData(f=>({...f,time:e.target.value}))}/>
-                </div>
-              </div>
-              <div className="form-field">
-                <label className="form-label">Kids' ages welcome</label>
-                <div className="age-grid">
-                  {AGE_GROUPS.map(a => (
-                    <button
-                      type="button"
-                      key={a}
-                      className={`age-chip ${selectedAges.includes(a) ? "selected" : ""}`}
-                      onClick={() =>
-                        setSelectedAges(p => (p.includes(a) ? p.filter(x => x !== a) : [...p, a]))
-                      }
-                    >
-                      {a}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {isCreateDisabled && submitHelper && (
-                <div className="submit-helper">{submitHelper}</div>
-              )}
-              <button className="submit-btn" disabled={isCreateDisabled} onClick={handleCreate}>
-                Post Playdate →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* TOWNS MODAL */}
-        {showTowns && (
-          <div className="modal-overlay" onClick={() => setShowTowns(false)}>
-            <div className="towns-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-handle"/>
-              <div style={{fontFamily:"Fraunces,serif",fontSize:22,fontWeight:500,marginBottom:6}}>Your area ⚓</div>
-              <div style={{fontSize:13,color:"var(--muted)",marginBottom:4}}>Select all the towns you want to see playdates from.</div>
-
-              <div className="towns-section-label">Portland</div>
-              <div className="towns-grid">
-                <button className={`town-btn ${activeTowns.includes("portland")?"active":""}`}
-                  onClick={() => toggleTown("portland")}>
-                  <span>📍 Portland</span>
-                  <span className="town-distance">City neighborhoods</span>
-                </button>
-              </div>
-
-              <div className="towns-section-label">Nearby Towns</div>
-              <div className="towns-grid">
-                {TOWNS_NEARBY.map(t => (
-                  <button key={t.id} className={`town-btn ${activeTowns.includes(t.id)?"active":""}`}
-                    onClick={() => toggleTown(t.id)}>
-                    <span>{t.name}</span>
-                    <span className="town-distance">{t.dist} · {t.sub}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div style={{marginTop:20,padding:"14px 16px",background:"var(--ocean-pale)",borderRadius:14,fontSize:13,color:"var(--ocean)",lineHeight:1.5}}>
-                🗺️ <strong>{activeTowns.length} area{activeTowns.length!==1?"s":""} selected.</strong> Playdates from all selected towns will appear in your feed and on the map.
-              </div>
-
-              <button className="ob-btn-primary" style={{marginTop:20}} onClick={() => setShowTowns(false)}>
-                Save — Show me playdates →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* DETAIL MODAL */}
-        {showDetail && (
-          <div className="modal-overlay" onClick={() => setShowDetail(null)}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-handle"/>
-              <div className="detail-img" style={{background:showDetail.bg}}>{showDetail.emoji}</div>
-              <div className="card-tags" style={{marginBottom:10}}>
-                <span className="tag tag-age">👶 {showDetail.ages}</span>
-                <span className="tag tag-venue">📍 {showDetail.hood}</span>
-              </div>
-              <div className="detail-title">{showDetail.title}</div>
-              <div className="detail-host">Hosted by {showDetail.host}</div>
-              <div className="detail-row"><span className="detail-icon">🕐</span><span>{showDetail.date}</span></div>
-              <div className="detail-row"><span className="detail-icon">📍</span><div><div>{showDetail.venue}</div><div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{showDetail.addr}</div></div></div>
-              <div className="detail-row"><span className="detail-icon">🌤</span><span>{showDetail.weather}</span></div>
-              <div className="detail-row"><span className="detail-icon">💬</span><span>{showDetail.description}</span></div>
-              <div className="detail-row"><span className="detail-icon">👥</span><div><div>{showDetail.count} Portland parents going</div><div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>Public meetup · Kid-friendly venue</div></div></div>
-              <button className={`rsvp-btn ${joined[showDetail.id]?"going":""}`}
-                onClick={() => { setJoined(j=>({...j,[showDetail.id]:!j[showDetail.id]})); setShowDetail(null); }}>
-                {joined[showDetail.id]?"✓ You're Going! 🎉":"RSVP — I'm In! 🙌"}
-              </button>
-            </div>
-          </div>
-        )}
+        <DetailModal
+          showDetail={showDetail}
+          setShowDetail={setShowDetail}
+          joined={joined}
+          setJoined={setJoined}
+        />
       </div>
     </>
   );
