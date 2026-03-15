@@ -1,5 +1,10 @@
-import { useState, useEffect } from "react";
-import { ALL_NEIGHBORHOODS, AVATARS } from "../../constants";
+import React from "react";
+import { ALL_NEIGHBORHOODS, AVATARS, TOWNS_NEARBY } from "../../constants";
+
+const TOWN_OPTIONS = [
+  { name: "Portland" },
+  ...TOWNS_NEARBY.filter(t => t.id !== "gorham"),
+];
 
 export function AboutYouScreen({ onNext, onBack, profile, setProfile }) {
   return (
@@ -13,7 +18,7 @@ export function AboutYouScreen({ onNext, onBack, profile, setProfile }) {
         </div>
         <div className="ob-step-label">Step 1 of 2</div>
         <div className="ob-title">Hey there! <em>Tell us about you.</em></div>
-        <div className="ob-subtitle">Just the basics — this is how other Portland parents will see you.</div>
+        <div className="ob-subtitle">Just the basics. This is how other Portland parents will see you.</div>
 
         <div className="ob-field">
           <label className="ob-label">Your first name</label>
@@ -22,16 +27,34 @@ export function AboutYouScreen({ onNext, onBack, profile, setProfile }) {
         </div>
 
         <div className="ob-field">
-          <label className="ob-label">Your area & neighborhood</label>
-          <select className="ob-select" value={profile.hood}
-            onChange={e => setProfile(p => ({ ...p, hood: e.target.value }))}>
-            <option value="">Select your neighborhood…</option>
-            {Object.entries(ALL_NEIGHBORHOODS).map(([town, hoods]) => (
-              <optgroup key={town} label={`— ${town} —`}>
-                {hoods.map(h => <option key={h} value={h}>{h}</option>)}
-              </optgroup>
+          <label className="ob-label">Your town</label>
+          <div className="town-chips">
+            {TOWN_OPTIONS.map(t => (
+              <button
+                key={t.id || t.name}
+                type="button"
+                className={`town-chip ${profile.town === t.name ? "active" : ""}`}
+                onClick={() => setProfile(p => ({ ...p, town: t.name, hood: "" }))}
+              >
+                {t.name}
+              </button>
             ))}
-          </select>
+          </div>
+          {profile.town === "Portland" && (
+            <>
+              <label className="hood-select-label">Neighborhood (optional)</label>
+              <select
+                className="ob-select"
+                value={profile.hood || ""}
+                onChange={e => setProfile(p => ({ ...p, hood: e.target.value }))}
+              >
+                <option value="">Select a neighborhood</option>
+                {(ALL_NEIGHBORHOODS["Portland"] || []).map(h => (
+                  <option key={h} value={h}>{h}</option>
+                ))}
+              </select>
+            </>
+          )}
         </div>
 
         <div className="ob-field">
@@ -46,7 +69,7 @@ export function AboutYouScreen({ onNext, onBack, profile, setProfile }) {
           </div>
         </div>
 
-        <button className="ob-btn-primary" disabled={!profile.name || !profile.hood || !profile.avatar}
+        <button className="ob-btn-primary" disabled={!profile.name || !profile.town || !profile.avatar}
           onClick={onNext}>Continue →</button>
       </div>
     </div>

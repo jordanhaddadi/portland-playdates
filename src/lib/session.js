@@ -5,7 +5,7 @@ export function loadSession() {
       const parsed = JSON.parse(saved);
       return {
         obStep: parsed.obStep || 0,
-        profile: parsed.profile || { name: "", hood: "", avatar: "" },
+        profile: parsed.profile || { name: "", hood: "", avatar: "", town: "" },
         kids: parsed.kids || [],
       };
     }
@@ -14,7 +14,7 @@ export function loadSession() {
   }
   return {
     obStep: 0,
-    profile: { name: "", hood: "", avatar: "" },
+    profile: { name: "", hood: "", avatar: "", town: "" },
     kids: [],
   };
 }

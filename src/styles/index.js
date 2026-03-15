@@ -164,6 +164,34 @@ export const styles = `
   .ob-input:focus { border-color: var(--ocean); }
   .ob-select { width: 100%; background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--charcoal); outline: none; appearance: none; cursor: pointer; }
   .ob-select:focus { border-color: var(--ocean); }
+  .town-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .town-chip {
+    padding: 8px 16px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: white;
+    color: var(--charcoal);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+  .town-chip.active {
+    background: var(--ocean);
+    color: white;
+    border-color: var(--ocean);
+  }
+  .hood-select-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    display: block;
+  }
 
   /* KIDS */
   .kid-card { background: white; border-radius: 18px; border: 1.5px solid var(--border); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; animation: obFadeIn 0.3s ease; }

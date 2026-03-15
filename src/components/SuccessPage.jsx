@@ -23,7 +23,7 @@ export function SuccessPage() {
                 const existing = JSON.parse(localStorage.getItem("ppd_beta_session") || "{}");
                 localStorage.setItem("ppd_beta_session", JSON.stringify({
                   obStep: 4,
-                  profile: existing.profile || { name: "", hood: "", avatar: "" },
+                  profile: existing.profile || { name: "", hood: "", avatar: "", town: "" },
                   kids: existing.kids || [],
                 }));
                 localStorage.setItem("ppd_show_preview", "true");

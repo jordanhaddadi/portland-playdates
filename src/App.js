@@ -85,7 +85,7 @@ function MainApp({
             <div className="greeting-kids">
               {kids.length > 0
                 ? kids.map(k => `${k.emoji} ${k.name} (${k.age})`).join(" · ")
-                : `${profile.hood || "Portland"} · Tap to add kids`}
+                : `${profile.town || "Portland"}${profile.hood ? ` (${profile.hood})` : ""} · Tap to add kids`}
             </div>
           </div>
           <button className="greeting-edit" onClick={() => setObStep(1)}>Edit</button>
@@ -418,7 +418,7 @@ export default function App() {
   const toggleTown = id => setActiveTowns(t => t.includes(id) ? (t.length > 1 ? t.filter(x=>x!==id) : t) : [...t, id]);
 
   const townLabel = activeTowns.length === 1 && activeTowns[0] === "portland"
-    ? `📍 ${profile.hood || "Portland, ME"}`
+    ? `📍 ${profile.town || "Portland, ME"}${profile.hood ? ` (${profile.hood})` : ""}`
     : `📍 ${activeTowns.length} areas selected`;
 
   const saveNewVenue = () => {
@@ -473,7 +473,7 @@ export default function App() {
       return;
     }
     const v = allVenues.find(v => v.name === selectedVenue);
-    const hoodName = v?.hood || profile.hood || "Portland";
+    const hoodName = v?.hood || profile.town || profile.hood || "Portland";
     const pin = HOOD_PIN_DEFAULTS[hoodName] || HOOD_PIN_DEFAULTS.default;
     setCreated(p => [
       {
