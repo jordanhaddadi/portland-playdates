@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 export function WaitlistScreen({ profile, onPreview, onFormSubmitted, showTallySuccess }) {
   const firstName = (profile?.name || "").trim().split(" ")[0] || "friend";
-  const avatar = profile?.avatar || "👩";
+  const avatar = (profile?.avatar || "") + (profile?.tone || "") || "👩";
 
   useEffect(() => {
     if (document.getElementById("tally-js")) {

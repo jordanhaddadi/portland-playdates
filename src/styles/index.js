@@ -153,8 +153,8 @@ export const styles = `
   .ob-subtitle { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; }
 
   /* AVATAR PICKER */
-  .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 24px; }
-  .avatar-option { width: 100%; aspect-ratio: 1; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; border: 2.5px solid var(--border); background: white; transition: all 0.15s; }
+  .avatar-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 24px; }
+  .avatar-option { width: auto; height: 64px; padding: 0; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; border: 2.5px solid var(--border); background: white; transition: all 0.15s; }
   .avatar-option.selected { border-color: var(--ocean); background: var(--ocean-pale); transform: scale(1.08); }
 
   /* FORM FIELDS */
@@ -198,6 +198,38 @@ export const styles = `
   .town-chip-sm {
     padding: 6px 12px;
     font-size: 12px;
+  }
+  .tone-picker-wrap {
+    margin-top: 16px;
+    animation: obFadeIn 0.2s ease;
+  }
+  .tone-picker-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .tone-picker-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .tone-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 100px;
+    border: 2.5px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .tone-dot:nth-child(1) { background: #FFDBB4; }
+  .tone-dot:nth-child(2) { background: #F5C99A; }
+  .tone-dot:nth-child(3) { background: #D4A574; }
+  .tone-dot:nth-child(4) { background: #A0714F; }
+  .tone-dot:nth-child(5) { background: #5C3D2E; }
+  .tone-dot.active {
+    border-color: var(--ocean);
+    transform: scale(1.2);
   }
 
   /* KIDS */

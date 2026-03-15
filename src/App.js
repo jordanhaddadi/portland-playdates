@@ -72,14 +72,14 @@ function MainApp({
               >
                 Reset
               </button>
-              <button className="user-avatar-btn" title="Profile">{profile.avatar || "👩"}</button>
+              <button className="user-avatar-btn" title="Profile">{profile.avatar + (profile.tone || "") || "👩"}</button>
             </div>
           </div>
         </div>
 
         {/* PERSONALIZED GREETING */}
         <div className="greeting-bar">
-          <div className="greeting-avatar">{profile.avatar || "👩"}</div>
+          <div className="greeting-avatar">{profile.avatar + (profile.tone || "") || "👩"}</div>
           <div className="greeting-text">
             <div className="greeting-name">Hey, {profile.name || "there"}! 👋</div>
             <div className="greeting-kids">
@@ -316,7 +316,7 @@ function MainApp({
           <div style={{flex:1,display:"flex",justifyContent:"center"}}>
             <button className="add-btn" onClick={() => setShowCreate(true)}>＋</button>
           </div>
-          {[{id:"dates",icon:"📅",label:"My Dates"},{id:"profile",icon:profile.avatar||"👩",label:"Profile"}].map(n => (
+          {[{id:"dates",icon:"📅",label:"My Dates"},{id:"profile",icon:profile.avatar + (profile.tone || "") || "👩",label:"Profile"}].map(n => (
             <button key={n.id} className={`nav-item ${activeNav===n.id?"active":""}`}
               onClick={() => {
                 setActiveNav(n.id);

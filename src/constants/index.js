@@ -1,6 +1,13 @@
 export const FOUNDER_EMAIL = "jordanhaddadi@gmail.com";
 
-export const AVATARS = ["👩","👨","👩‍🦱","👨‍🦱","👩‍🦰","👨‍🦰","👩‍🦳","👨‍🦳","🧑","👶"];
+export const AVATARS = ["🧑","👩","👨","🧒","👧","👦"];
+export const SKIN_TONES = [
+  { label: "Default", modifier: "" },
+  { label: "Light", modifier: "\u{1F3FB}" },
+  { label: "Medium Light", modifier: "\u{1F3FC}" },
+  { label: "Medium", modifier: "\u{1F3FD}" },
+  { label: "Medium Dark", modifier: "\u{1F3FE}" },
+];
 export const KID_EMOJIS = ["🧒","👦","👧","🧒‍♂️","🧒‍♀️","⭐","🌟","🦊","🐻","🦁"];
 export const HOODS = ["All","East End","West End","Downtown","Back Cove","Bayside"];
 export const AGE_GROUPS = ["0–1","1–2","2–3","3–4","4–5","5–6","6–8","8–10"];

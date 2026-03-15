@@ -1,5 +1,5 @@
 import React from "react";
-import { ALL_NEIGHBORHOODS, AVATARS, TOWNS_NEARBY } from "../../constants";
+import { ALL_NEIGHBORHOODS, AVATARS, SKIN_TONES, TOWNS_NEARBY } from "../../constants";
 
 const TOWN_OPTIONS = [
   { name: "Portland" },
@@ -75,10 +75,33 @@ export function AboutYouScreen({ onNext, onBack, profile, setProfile }) {
             {AVATARS.map(a => (
               <button key={a} className={`avatar-option ${profile.avatar === a ? "selected" : ""}`}
                 onClick={() => setProfile(p => ({ ...p, avatar: a }))}>
-                {a}
+                {a + (profile.tone || "")}
               </button>
             ))}
           </div>
+          {profile.avatar && (
+            <div className="tone-picker-wrap">
+              <span className="tone-picker-label">
+                Pick your skin tone
+              </span>
+              <div className="tone-picker-row">
+                {SKIN_TONES.map(tone => (
+                  <button
+                    key={tone.label}
+                    type="button"
+                    className={
+                      "tone-dot" +
+                      (profile.tone === tone.modifier ? " active" : "")
+                    }
+                    onClick={() =>
+                      setProfile(p => ({ ...p, tone: tone.modifier }))
+                    }
+                    aria-label={tone.label}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <button className="ob-btn-primary" disabled={!profile.name || !profile.town || !profile.avatar}
