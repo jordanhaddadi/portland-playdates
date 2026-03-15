@@ -41,19 +41,31 @@ export function AboutYouScreen({ onNext, onBack, profile, setProfile }) {
             ))}
           </div>
           {profile.town === "Portland" && (
-            <>
-              <label className="hood-select-label">Neighborhood (optional)</label>
-              <select
-                className="ob-select"
-                value={profile.hood || ""}
-                onChange={e => setProfile(p => ({ ...p, hood: e.target.value }))}
-              >
-                <option value="">Select a neighborhood</option>
-                {(ALL_NEIGHBORHOODS["Portland"] || []).map(h => (
-                  <option key={h} value={h}>{h}</option>
+            <div className="hood-picker-wrap">
+              <span className="hood-select-label">
+                Neighborhood (optional)
+              </span>
+              <div className="town-chips">
+                {(ALL_NEIGHBORHOODS["Portland"] || []).map(hood => (
+                  <button
+                    key={hood}
+                    type="button"
+                    className={
+                      "town-chip town-chip-sm" +
+                      (profile.hood === hood ? " active" : "")
+                    }
+                    onClick={() =>
+                      setProfile(p => ({
+                        ...p,
+                        hood: profile.hood === hood ? "" : hood,
+                      }))
+                    }
+                  >
+                    {hood}
+                  </button>
                 ))}
-              </select>
-            </>
+              </div>
+            </div>
           )}
         </div>
 

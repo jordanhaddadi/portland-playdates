@@ -43,7 +43,7 @@ export const VENUE_TYPES = [
 export const VENUE_PERKS = ["🚗 Free parking","🚽 Bathrooms","👶 Stroller-friendly","☕ Café nearby","🌳 Shade","🔒 Fenced","🐶 Dog-friendly"];
 
 export const ALL_NEIGHBORHOODS = {
-  "Portland": ["East End","Munjoy Hill","West End","Downtown","Back Cove","Bayside","East Deering","North Deering","Deering Center","Riverton","Rosemont","Woodfords","Stroudwater","Parkside"],
+  "Portland": ["East End","West End","Downtown","Back Cove","Bayside","East Deering","North Deering","Deering Center","Riverton","Rosemont","Woodfords","Stroudwater","Parkside"],
   "South Portland": ["Knightville","Willard","Mill Creek","Pleasantdale"],
   "Cape Elizabeth": ["Cape Elizabeth Village","Spurwink","Pond Cove"],
   "Falmouth": ["Falmouth Foreside","West Falmouth"],

@@ -192,6 +192,13 @@ export const styles = `
     margin-bottom: 6px;
     display: block;
   }
+  .hood-picker-wrap {
+    margin-top: 4px;
+  }
+  .town-chip-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
 
   /* KIDS */
   .kid-card { background: white; border-radius: 18px; border: 1.5px solid var(--border); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; animation: obFadeIn 0.3s ease; }
