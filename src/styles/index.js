@@ -398,5 +398,31 @@ export const styles = `
   .preview-modal-pill { display: flex; align-items: center; gap: 12px; background: white; border-radius: 14px; border: 1.5px solid var(--border); padding: 12px 16px; font-size: 14px; font-weight: 500; color: var(--charcoal); }
   .preview-modal-pill-icon { font-size: 22px; flex-shrink: 0; }
   .preview-modal-pill-sub { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+  .preview-modal-share {
+    margin-top: 16px;
+    text-align: center;
+  }
+  .preview-modal-share-text {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .preview-modal-share-text strong {
+    color: var(--charcoal);
+    font-weight: 600;
+  }
+  .preview-modal-share-btn {
+    background: var(--ocean-pale);
+    color: var(--ocean);
+    border: 1.5px solid var(--ocean-light);
+    border-radius: 100px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    width: 100%;
+  }
 
 `;

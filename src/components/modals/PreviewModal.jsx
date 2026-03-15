@@ -1,4 +1,27 @@
+import { useState } from "react";
+
 export function PreviewModal({ showPreviewModal, setShowPreviewModal }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const shareData = {
+      title: "Portland PlayDates",
+      text: "Find your village in Greater Portland. Join the beta!",
+      url: "https://www.portlandplaydates.com",
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (e) {
+        // user cancelled, do nothing
+      }
+    } else {
+      navigator.clipboard.writeText("https://www.portlandplaydates.com");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   if (!showPreviewModal) return null;
 
   return (
@@ -36,6 +59,18 @@ export function PreviewModal({ showPreviewModal, setShowPreviewModal }) {
         >
           Let's explore 🌊
         </button>
+        <div className="preview-modal-share">
+          <div className="preview-modal-share-text">
+            Invite 3 parent friends so there are more families
+            in your neighborhood when we launch.
+          </div>
+          <button
+            className="preview-modal-share-btn"
+            onClick={handleShare}
+          >
+            {copied ? "Link copied!" : "Share Portland PlayDates"}
+          </button>
+        </div>
       </div>
     </div>
   );
