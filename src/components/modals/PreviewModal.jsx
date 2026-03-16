@@ -1,27 +1,4 @@
-import { useState } from "react";
-
-export function PreviewModal({ showPreviewModal, setShowPreviewModal }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleShare = async () => {
-    const shareData = {
-      title: "Portland PlayDates",
-      text: "Find your village in Greater Portland. Join the beta!",
-      url: "https://www.portlandplaydates.com",
-    };
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (e) {
-        // user cancelled, do nothing
-      }
-    } else {
-      navigator.clipboard.writeText("https://www.portlandplaydates.com");
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
+export function PreviewModal({ showPreviewModal, setShowPreviewModal, handleShare, topbarCopied }) {
   if (!showPreviewModal) return null;
 
   return (
@@ -36,7 +13,7 @@ export function PreviewModal({ showPreviewModal, setShowPreviewModal }) {
         <div className="preview-modal-sub">
           Poke around and get a feel for what's coming
           to Portland this spring. Everything here is
-          a preview — playdates are not live yet.
+          a preview. Playdates are not live yet.
         </div>
         <div className="preview-modal-pills">
           {[
@@ -68,7 +45,7 @@ export function PreviewModal({ showPreviewModal, setShowPreviewModal }) {
             className="preview-modal-share-btn"
             onClick={handleShare}
           >
-            {copied ? "Link copied!" : "Share Portland PlayDates"}
+            {topbarCopied ? "Link copied!" : "Share Portland PlayDates"}
           </button>
         </div>
       </div>

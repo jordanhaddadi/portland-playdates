@@ -264,6 +264,17 @@ export const styles = `
   .logo-name { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: var(--charcoal); letter-spacing: -0.5px; }
   .logo-name > span:not(.beta-badge) { color: var(--terracotta); }
   .user-avatar-btn { width: 42px; height: 42px; border-radius: 50%; border: 2.5px solid var(--ocean-light); background: var(--ocean-pale); cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+  .topbar-share-btn {
+    font-size: 10px;
+    color: var(--ocean);
+    background: var(--ocean-pale);
+    border: 1px solid var(--ocean-light);
+    border-radius: 100px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+  }
 
   /* PERSONALIZED GREETING */
   .greeting-bar { margin: 0 24px 18px; background: white; border-radius: 18px; border: 1.5px solid var(--border); padding: 14px 18px; display: flex; align-items: center; gap: 14px; }
@@ -426,6 +437,42 @@ export const styles = `
   .waitlist-headline { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 500; color: var(--charcoal); margin-bottom: 10px; text-align: center; }
   .waitlist-subtext { font-size: 14px; color: var(--muted); line-height: 1.6; text-align: center; margin-bottom: 20px; }
   .waitlist-pill-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .waitlist-faq-toggle {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    padding: 8px 0;
+    width: 100%;
+    text-align: center;
+  }
+  .waitlist-faq {
+    margin: 8px 0 16px;
+    text-align: left;
+    animation: obFadeIn 0.2s ease;
+  }
+  .waitlist-faq-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .waitlist-faq-item:last-child {
+    border-bottom: none;
+  }
+  .waitlist-faq-q {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--charcoal);
+    margin-bottom: 4px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .waitlist-faq-a {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-family: 'DM Sans', sans-serif;
+  }
   .tally-success-card { background: white; border-radius: 24px; padding: 32px 24px; width: 100%; max-width: 380px; text-align: center; }
   .tally-success-emoji { font-size: 48px; display: block; margin-bottom: 16px; }
   .tally-success-headline { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 500; color: var(--charcoal); margin-bottom: 8px; }

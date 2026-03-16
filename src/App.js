@@ -28,6 +28,7 @@ function MainApp({
   myDatesTab, setMyDatesTab, showToast, setShowToast,
   allVenues, allDates, filtered, activePd, goingDates, hostingDates,
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
+  handleShare, topbarCopied,
 }) {
   // ── ONBOARDING ──
   if (obStep === 0) return <><style dangerouslySetInnerHTML={{ __html: FONT }} />
@@ -54,6 +55,12 @@ function MainApp({
               <div className="logo-name">PlayDates <span className="beta-badge">Beta</span></div>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <button
+                className="topbar-share-btn"
+                onClick={handleShare}
+              >
+                {topbarCopied ? "Copied!" : "Share"}
+              </button>
               <button
                 style={{
                   fontSize:10,
@@ -247,7 +254,7 @@ function MainApp({
               <div className="hero-label">⚓ {allDates.length} playdates near you</div>
               <h2>Hey {profile.name||"there"}!<br /><em>Ready to play?</em></h2>
               <div className="hero-sub">
-                {kids.length > 0 ? `Showing matches for ${kids.map(k=>k.name).join(" & ")}` : "From Munjoy Hill to Back Cove"}
+                {kids.length > 0 ? `Showing matches for ${kids.map(k=>k.name).join(" & ")}` : "From the East End to Cape Elizabeth"}
               </div>
               <button className="hero-cta" onClick={() => setShowCreate(true)}>+ Host a playdate</button>
             </div>
@@ -337,6 +344,8 @@ function MainApp({
         <PreviewModal
           showPreviewModal={showPreviewModal}
           setShowPreviewModal={setShowPreviewModal}
+          handleShare={handleShare}
+          topbarCopied={topbarCopied}
         />
 
         <CreateModal
@@ -385,6 +394,7 @@ export default function App() {
   const [kids, setKids] = useState(() => loadSession().kids);
   const [showTallySuccess, setShowTallySuccess] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [topbarCopied, setTopbarCopied] = useState(false);
   const isFirstRender = useRef(true);
 
   // App state
@@ -420,6 +430,27 @@ export default function App() {
   const townLabel = activeTowns.length === 1 && activeTowns[0] === "portland"
     ? `📍 ${profile.town || "Portland, ME"}${profile.hood ? ` (${profile.hood})` : ""}`
     : `📍 ${activeTowns.length} areas selected`;
+
+  const handleShare = async () => {
+    const shareData = {
+      title: "Portland PlayDates",
+      text: "Find your village in Greater Portland. Join the beta!",
+      url: "https://www.portlandplaydates.com",
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (e) {
+        // user cancelled, do nothing
+      }
+    } else {
+      navigator.clipboard.writeText(
+        "https://www.portlandplaydates.com"
+      );
+      setTopbarCopied(true);
+      setTimeout(() => setTopbarCopied(false), 2000);
+    }
+  };
 
   const saveNewVenue = () => {
     if (newVenue.name && newVenue.addr && newVenue.type) {
@@ -565,6 +596,8 @@ export default function App() {
         submitHelper={submitHelper}
         handleCreate={handleCreate}
         saveNewVenue={saveNewVenue}
+        handleShare={handleShare}
+        topbarCopied={topbarCopied}
       />} />
     </Routes>
   );

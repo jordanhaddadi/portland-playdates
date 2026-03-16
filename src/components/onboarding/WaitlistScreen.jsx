@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 export function WaitlistScreen({ profile, onPreview, onFormSubmitted, showTallySuccess }) {
   const firstName = (profile?.name || "").trim().split(" ")[0] || "friend";
   const avatar = (profile?.avatar || "") + (profile?.tone || "") || "👩";
+  const [showFaq, setShowFaq] = useState(false);
 
   useEffect(() => {
     if (document.getElementById("tally-js")) {
@@ -16,6 +17,29 @@ export function WaitlistScreen({ profile, onPreview, onFormSubmitted, showTallyS
     script.onload = () => window.Tally?.loadEmbeds?.();
     document.body.appendChild(script);
   }, []);
+
+  const FAQS = [
+    {
+      q: "Is it safe?",
+      a: "Every meetup is at a park, library, or cafe. Never private homes. Public spaces only is a core design principle, not an afterthought."
+    },
+    {
+      q: "Who is it for?",
+      a: "Parents, nannies, grandparents, homeschool families and mamas-to-be. All caregivers with young kids are welcome."
+    },
+    {
+      q: "What towns are included?",
+      a: "Greater Portland is our home base and where we are starting. We are actively expanding and would love to know where you are! Sign up and let us know your town and you will be among the first to know when your area goes live."
+    },
+    {
+      q: "When does it launch?",
+      a: "This spring. Founding families get first access and help shape what gets built next."
+    },
+    {
+      q: "Do I need to download an app?",
+      a: "No download needed yet. Portland PlayDates works right in your browser and is best experienced on mobile."
+    },
+  ];
 
   return (
     <div className="ob-screen ob-welcome">
@@ -51,7 +75,7 @@ export function WaitlistScreen({ profile, onPreview, onFormSubmitted, showTallyS
             </div>
 
             <div style={{ fontSize:13, color:"var(--muted)", textAlign:"center", marginBottom:20, lineHeight:1.5 }}>
-              Spots are limited. Be one of the first 50 Portland families.
+              Spots are limited. Be one of the first 100 founding families.
             </div>
 
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -77,6 +101,22 @@ export function WaitlistScreen({ profile, onPreview, onFormSubmitted, showTallyS
               >
                 Reserve My Spot 🎉
               </button>
+              <button
+                className="waitlist-faq-toggle"
+                onClick={() => setShowFaq(f => !f)}
+              >
+                {showFaq ? "Hide common questions ↑" : "Have questions? ↓"}
+              </button>
+              {showFaq && (
+                <div className="waitlist-faq">
+                  {FAQS.map(faq => (
+                    <div key={faq.q} className="waitlist-faq-item">
+                      <div className="waitlist-faq-q">{faq.q}</div>
+                      <div className="waitlist-faq-a">{faq.a}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <button
                 style={{
                   width:"100%",
