@@ -254,7 +254,7 @@ function MainApp({
               <div className="hero-label">⚓ {allDates.length} playdates near you</div>
               <h2>Hey {profile.name||"there"}!<br /><em>Ready to play?</em></h2>
               <div className="hero-sub">
-                {kids.length > 0 ? `Showing matches for ${kids.map(k=>k.name).join(" & ")}` : "From the East End to Cape Elizabeth"}
+                {kids.length > 0 ? `Showing matches for ${kids.map(k=>k.name).join(" & ")}` : "From the East End to North Deering and more"}
               </div>
               <button className="hero-cta" onClick={() => setShowCreate(true)}>+ Host a playdate</button>
             </div>
