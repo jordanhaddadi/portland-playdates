@@ -1,12 +1,14 @@
+import { supabase } from './lib/supabase';
 import { useState, useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
 import { FOUNDER_EMAIL, AVATARS, KID_EMOJIS, HOODS, AGE_GROUPS, PORTLAND_VENUES, TOWNS_NEARBY, VENUE_TYPES, VENUE_PERKS, ALL_NEIGHBORHOODS, PLAYDATES, HOOD_PIN_DEFAULTS, pinColor } from './constants';
 import { FONT, styles } from './styles/index';
-import { loadSession } from './lib/session';
+import { loadSession, fetchProfileAndKids, upsertProfile, replaceKids } from './lib/session';
 import { WelcomeScreen } from './components/onboarding/WelcomeScreen';
 import { AboutYouScreen } from './components/onboarding/AboutYouScreen';
 import { YourKidsScreen } from './components/onboarding/YourKidsScreen';
 import { WaitlistScreen } from './components/onboarding/WaitlistScreen';
+import { AuthScreen } from "./components/onboarding/AuthScreen";
 import { MyDatesView } from './components/MyDatesView';
 import { SuccessPage } from './components/SuccessPage';
 import { CreateModal } from './components/modals/CreateModal';
@@ -17,6 +19,10 @@ import { PreviewModal } from './components/modals/PreviewModal';
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 function MainApp({
+  session,
+  enableAuth,
+  authReady,
+  loadingProfile,
   obStep, setObStep, profile, setProfile, kids, setKids,
   showTallySuccess, setShowTallySuccess, showPreviewModal, setShowPreviewModal,
   view, setView, activeHood, setActiveHood, activePin, setActivePin,
@@ -30,6 +36,32 @@ function MainApp({
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
   handleShare, topbarCopied,
 }) {
+  if (enableAuth && !session) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: FONT }} />
+        <style dangerouslySetInnerHTML={{ __html: styles }} />
+        <AuthScreen onSuccess={() => {}} />
+      </>
+    );
+  }
+
+  if (session && loadingProfile) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: FONT }} />
+        <style dangerouslySetInnerHTML={{ __html: styles }} />
+        <div className="ob-screen ob-welcome">
+          <div className="ob-blob1" /><div className="ob-blob2" />
+          <div className="ob-blob3" />
+          <div className="ob-card" style={{ justifyContent: "center" }}>
+            <div className="ob-title" style={{ textAlign: "center" }}>Loading your profile...</div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   // ── ONBOARDING ──
   if (obStep === 0) return <><style dangerouslySetInnerHTML={{ __html: FONT }} />
       <style dangerouslySetInnerHTML={{ __html: styles }} /><WelcomeScreen onNext={() => setObStep(1)} /></>;
@@ -61,24 +93,56 @@ function MainApp({
               >
                 {topbarCopied ? "Copied!" : "Share"}
               </button>
-              <button
-                style={{
-                  fontSize:10,
-                  color:"var(--muted)",
-                  background:"none",
-                  border:"1px solid var(--border)",
-                  borderRadius:100,
-                  padding:"4px 10px",
-                  cursor:"pointer",
-                  fontFamily:"DM Sans, sans-serif",
-                }}
-                onClick={() => {
-                  localStorage.removeItem("ppd_beta_session");
-                  window.location.reload();
-                }}
-              >
-                Reset
-              </button>
+              {enableAuth && (
+                <>
+                  <button
+                    style={{
+                      fontSize:10,
+                      color:"var(--muted)",
+                      background:"none",
+                      border:"1px solid var(--border)",
+                      borderRadius:100,
+                      padding:"4px 10px",
+                      cursor:"pointer",
+                      fontFamily:"DM Sans, sans-serif",
+                    }}
+                    onClick={() => {
+                      localStorage.removeItem("ppd_beta_session");
+                      localStorage.removeItem("ppd_show_preview");
+                      setObStep(0);
+                      setProfile({ name: "", hood: "", avatar: "", town: "", tone: "" });
+                      setKids([]);
+                      setShowPreviewModal(false);
+                    }}
+                  >
+                    Restart
+                  </button>
+                  <button
+                    style={{
+                      fontSize:10,
+                      color:"var(--muted)",
+                      background:"none",
+                      border:"1px solid var(--border)",
+                      borderRadius:100,
+                      padding:"4px 10px",
+                      cursor:"pointer",
+                      fontFamily:"DM Sans, sans-serif",
+                    }}
+                    onClick={async () => {
+                      localStorage.removeItem("ppd_beta_session");
+                      localStorage.removeItem("ppd_show_preview");
+                      try {
+                        await supabase.auth.signOut();
+                      } catch (e) {
+                        console.error("Failed to sign out:", e);
+                      }
+                      window.location.reload();
+                    }}
+                  >
+                    Reset
+                  </button>
+                </>
+              )}
               <button className="user-avatar-btn" title="Profile">{profile.avatar + (profile.tone || "") || "👩"}</button>
             </div>
           </div>
@@ -388,6 +452,13 @@ function MainApp({
 
 export default function App() {
 
+  const enableAuth = process.env.REACT_APP_ENABLE_AUTH === "true";
+
+  const [session, setSession] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
   // Onboarding state
   const [obStep, setObStep] = useState(() => loadSession().obStep); // 0=welcome, 1=about, 2=kids, 3=waitlist, 4=app
   const [profile, setProfile] = useState(() => loadSession().profile);
@@ -472,6 +543,84 @@ export default function App() {
   }, [obStep, profile, kids]);
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthReady(true);
+    });
+    const { data: { subscription } } =
+      supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+        setAuthReady(true);
+      });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!authReady) {
+      return;
+    }
+    if (!session) {
+      setHasProfile(false);
+      setLoadingProfile(false);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      setLoadingProfile(true);
+      try {
+        const { profile: remoteProfile, kids: remoteKids } = await fetchProfileAndKids(session.user.id);
+        if (cancelled) return;
+
+        if (remoteProfile) {
+          setProfile(p => ({
+            ...p,
+            name: remoteProfile.name || "",
+            town: remoteProfile.town || "",
+            hood: remoteProfile.hood || "",
+            avatar: remoteProfile.avatar || "",
+            tone: remoteProfile.tone || "",
+            bio: remoteProfile.bio || p.bio || "",
+          }));
+          setKids((remoteKids || []).map(k => ({
+            name: k.name,
+            age: k.age,
+            emoji: k.emoji,
+          })));
+          setHasProfile(true);
+        } else {
+          setHasProfile(false);
+        }
+      } catch (e) {
+        console.error("Supabase profile load failed", e);
+        setHasProfile(false);
+      } finally {
+        if (!cancelled) setLoadingProfile(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, session]);
+
+  useEffect(() => {
+    if (!session) return;
+    if (hasProfile) return;
+    if (obStep !== 3) return;
+
+    (async () => {
+      try {
+        await upsertProfile(session.user.id, profile);
+        await replaceKids(session.user.id, kids);
+        setHasProfile(true);
+      } catch (e) {
+        console.error("Supabase profile save failed", e);
+      }
+    })();
+  }, [session, hasProfile, obStep, profile, kids]);
+
+  useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
@@ -540,6 +689,10 @@ export default function App() {
     <Routes>
       <Route path="/success" element={<SuccessPage />} />
       <Route path="*" element={<MainApp
+        session={session}
+        enableAuth={enableAuth}
+        authReady={authReady}
+        loadingProfile={loadingProfile}
         obStep={obStep}
         setObStep={setObStep}
         profile={profile}
