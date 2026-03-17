@@ -70,6 +70,7 @@ export async function fetchProfileAndKids(userId) {
 export async function upsertProfile(userId, profile) {
   const payload = {
     id: userId,
+    email: profile?.email || "",
     name: profile?.name || "",
     town: profile?.town || "",
     hood: profile?.hood || "",
@@ -109,7 +110,7 @@ export async function uploadAvatar(userId, file) {
     .from("avatars")
     .getPublicUrl(path);
 
-  const publicUrl = data.publicUrl;
+  const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
 
   const { error: updateError } = await supabase
     .from("profiles")

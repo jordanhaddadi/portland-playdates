@@ -188,7 +188,10 @@ function MainApp({
         onDone={async () => {
           try {
             if (session?.user?.id) {
-              await upsertProfile(session.user.id, profile);
+              await upsertProfile(session.user.id, {
+                ...profile,
+                email: session?.user?.email || "",
+              });
               await replaceKids(session.user.id, kids);
             }
             localStorage.setItem(
@@ -1055,6 +1058,7 @@ export default function App() {
             hood: remoteProfile.hood || "",
             avatar: remoteProfile.avatar || "",
             avatar_url: remoteProfile.avatar_url || "",
+            email: session?.user?.email || "",
             tone: remoteProfile.tone || "",
             bio: remoteProfile.bio || "",
             role: remoteProfile.role || "",
