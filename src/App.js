@@ -94,6 +94,8 @@ function MainApp({
   showAddVenue, setShowAddVenue, newVenue, setNewVenue, setUserVenues,
   formData, setFormData, created, setCreated, activeNav, setActiveNav,
   myDatesTab, setMyDatesTab, showToast, setShowToast,
+  setDbPlaydates,
+  setDbRsvps,
   allVenues, allDates, filtered, activePd, goingDates, hostingDates,
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
   handleShare, topbarCopied,
@@ -340,8 +342,36 @@ function MainApp({
             onOpenDetail={pd => setShowDetail(pd)}
             onBrowsePlaydates={() => { setActiveNav("home"); setView("list"); }}
             onHostOne={() => setShowCreate(true)}
-            onCancelGoing={id => setJoined(j => ({ ...j, [id]: false }))}
-            onRemoveHosting={id => setCreated(p => p.filter(x => x.id !== id))}
+            onCancelGoing={async (id) => {
+              if (!session?.user?.id) return;
+              try {
+                await leavePlaydate(id, session.user.id);
+                const refreshedRsvps = await fetchRsvps();
+                setDbRsvps(refreshedRsvps);
+                setJoined(j => ({ ...j, [id]: false }));
+              } catch (e) {
+                console.error("Failed to cancel RSVP:", e);
+              }
+            }}
+            onRemoveHosting={async (id) => {
+              if (!session?.user?.id) return;
+              try {
+                await supabase
+                  .from("playdates")
+                  .delete()
+                  .eq("id", id)
+                  .eq("host_id", session.user.id);
+                const [pds, rsvps] = await Promise.all([
+                  fetchPlaydates(),
+                  fetchRsvps(),
+                ]);
+                setDbPlaydates(pds);
+                setDbRsvps(rsvps);
+                setCreated(p => p.filter(x => x.id !== id));
+              } catch (e) {
+                console.error("Failed to remove hosting:", e);
+              }
+            }}
           />
         )}
 
@@ -1337,6 +1367,8 @@ export default function App() {
         setMyDatesTab={setMyDatesTab}
         showToast={showToast}
         setShowToast={setShowToast}
+        setDbPlaydates={setDbPlaydates}
+        setDbRsvps={setDbRsvps}
         allVenues={allVenues}
         allDates={allDates}
         filtered={filtered}
