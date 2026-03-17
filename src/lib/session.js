@@ -181,7 +181,8 @@ export async function fetchPlaydates() {
       host:profiles!playdates_host_id_fkey(
         name,
         avatar,
-        tone
+        tone,
+        avatar_url
       ),
       rsvps(
         id,
@@ -189,7 +190,8 @@ export async function fetchPlaydates() {
         profiles(
           name,
           avatar,
-          tone
+          tone,
+          avatar_url
         )
       )
     `)
@@ -211,7 +213,8 @@ export async function fetchRsvps() {
         id,
         name,
         avatar,
-        tone
+        tone,
+        avatar_url
       )
     `);
 

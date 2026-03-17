@@ -666,7 +666,7 @@ export const styles = `
   .card-footer { display: flex; align-items: center; justify-content: space-between; }
   .attendees { display: flex; align-items: center; gap: 8px; }
   .avatar-stack { display: flex; }
-  .avatar-sm { width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; margin-left: -8px; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+  .avatar-sm { width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; margin-left: -8px; font-size: 11px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .avatar-sm:first-child { margin-left: 0; }
   .attendee-text { font-size: 12px; color: var(--muted); }
   .join-btn { background: var(--terracotta); color: white; border: none; border-radius: 100px; padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }

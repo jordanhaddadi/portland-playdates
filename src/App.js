@@ -92,7 +92,7 @@ function MainApp({
   activeTowns, toggleTown, townLabel, selectedTownNames, joined, setJoined,
   selectedAges, setSelectedAges, selectedVenue, setSelectedVenue,
   showAddVenue, setShowAddVenue, newVenue, setNewVenue, setUserVenues,
-  formData, setFormData, created, setCreated, activeNav, setActiveNav,
+  formData, setFormData, created, setCreated, activeNav, handleSetActiveNav,
   myDatesTab, setMyDatesTab, showToast, setShowToast,
   setDbPlaydates,
   setDbRsvps,
@@ -279,7 +279,7 @@ function MainApp({
               <button
                 className="user-avatar-btn"
                 title="Profile"
-                onClick={() => setActiveNav("profile")}
+                onClick={() => handleSetActiveNav("profile")}
               >
                 {profile.avatar_url ? (
                   <img
@@ -328,7 +328,7 @@ function MainApp({
         {activeNav !== "dates" && activeNav !== "profile" && (
           <div className="view-toggle">
             <button className={`toggle-btn ${view==="list"?"active":""}`} onClick={() => setView("list")}>☰ List</button>
-            <button className={`toggle-btn ${view==="map"?"active":""}`} onClick={() => { setView("map"); setActiveNav("search"); }}>🗺️ Map</button>
+            <button className={`toggle-btn ${view==="map"?"active":""}`} onClick={() => { setView("map"); handleSetActiveNav("search"); }}>🗺️ Map</button>
           </div>
         )}
 
@@ -340,7 +340,7 @@ function MainApp({
             goingDates={goingDates}
             hostingDates={hostingDates}
             onOpenDetail={pd => setShowDetail(pd)}
-            onBrowsePlaydates={() => { setActiveNav("home"); setView("list"); }}
+            onBrowsePlaydates={() => { handleSetActiveNav("home"); setView("list"); }}
             onHostOne={() => setShowCreate(true)}
             onCancelGoing={async (id) => {
               if (!session?.user?.id) return;
@@ -392,12 +392,12 @@ function MainApp({
             showLogout={enableAuth && isAuthed}
             onEditProfile={() => {
               setIsEditingProfile(true);
-              setActiveNav("profile");
+              handleSetActiveNav("profile");
               setObStep(1);
             }}
             onEditKids={() => {
               setIsEditingKids(true);
-              setActiveNav("profile");
+              handleSetActiveNav("profile");
               setObStep(2);
             }}
             onEditCaregiver={() => setObStep(3)}
@@ -405,6 +405,7 @@ function MainApp({
               try {
                 localStorage.removeItem("ppd_beta_session");
                 localStorage.removeItem("ppd_show_preview");
+                sessionStorage.removeItem("ppd_active_nav");
                 await supabase.auth.signOut();
               } catch (e) {
                 console.error("Failed to log out:", e);
@@ -590,7 +591,28 @@ function MainApp({
                     <div className="card-footer">
                       <div className="attendees">
                         <div className="avatar-stack">
-                          {pd.attendees.slice(0,3).map((a,i) => <div key={i} className="avatar-sm" style={{background:["#EAF3F8","#EEF4EF","#FDF0E8"][i%3]}}>{a}</div>)}
+                          {pd.attendees.slice(0,3).map((a,i) => (
+                            <div
+                              key={i}
+                              className="avatar-sm"
+                              style={{background:["#EAF3F8","#EEF4EF","#FDF0E8"][i%3]}}
+                            >
+                              {a && a.photoUrl ? (
+                                <img
+                                  src={a.photoUrl}
+                                  alt="attendee"
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    borderRadius: "50%",
+                                  }}
+                                />
+                              ) : (
+                                a.emoji || a
+                              )}
+                            </div>
+                          ))}
                         </div>
                         <span className="attendee-text">{pd.count} going</span>
                       </div>
@@ -629,7 +651,7 @@ function MainApp({
         <div className="bottom-nav">
           {[{id:"home",icon:"🏠",label:"Home"},{id:"search",icon:"🗺️",label:"Map"}].map(n => (
             <button key={n.id} className={`nav-item ${activeNav===n.id?"active":""}`}
-              onClick={() => { setActiveNav(n.id); if(n.id==="search") setView("map"); else setView("list"); }}>
+              onClick={() => { handleSetActiveNav(n.id); if(n.id==="search") setView("map"); else setView("list"); }}>
               <span className="nav-icon">{n.icon}</span><span className="nav-label">{n.label}</span>
             </button>
           ))}
@@ -639,7 +661,7 @@ function MainApp({
           {[{id:"dates",icon:"📅",label:"My Dates"},{id:"profile",icon:(profile.avatar + (profile.tone || "") || "👩"),label:"Profile"}].map(n => (
             <button key={n.id} className={`nav-item ${activeNav===n.id?"active":""}`}
               onClick={() => {
-                setActiveNav(n.id);
+                handleSetActiveNav(n.id);
                 if (n.id === "dates") setMyDatesTab("going");
               }}>
               <span className="nav-icon">
@@ -748,9 +770,19 @@ export default function App() {
   const [dbPlaydates, setDbPlaydates] = useState([]);
   const [dbRsvps, setDbRsvps] = useState([]);
   const [dbVenues, setDbVenues] = useState([]);
-  const [activeNav, setActiveNav] = useState("home");
+  const [activeNav, setActiveNav] = useState(() => {
+    if (typeof window === "undefined") return "home";
+    return sessionStorage.getItem("ppd_active_nav") || "home";
+  });
   const [myDatesTab, setMyDatesTab] = useState("going");
   const [showToast, setShowToast] = useState(false);
+
+  const handleSetActiveNav = (nav) => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("ppd_active_nav", nav);
+    }
+    setActiveNav(nav);
+  };
 
   const mappedDbVenues = dbVenues.map(v => ({
     name: v.name,
@@ -769,20 +801,22 @@ export default function App() {
       : false;
 
     const pin = HOOD_PIN_DEFAULTS[pd.hood] || HOOD_PIN_DEFAULTS.default;
-    const hostAvatar =
-      pd.host
-        ? `${pd.host.avatar || "👤"}${pd.host.tone || ""}`
-        : "👤";
+    const hostAttendee = {
+      emoji: pd.host ? `${pd.host.avatar || "👤"}${pd.host.tone || ""}` : "👤",
+      photoUrl: pd.host?.avatar_url || null,
+    };
 
-    const rsvpAvatars = rsvpsForDate
-      .map(r => {
-        const p = r.profiles;
-        return p ? `${p.avatar || "👤"}${p.tone || ""}` : "👤";
-      });
+    const rsvpAttendees = rsvpsForDate.map(r => {
+      const p = r.profiles;
+      return {
+        emoji: p ? `${p.avatar || "👤"}${p.tone || ""}` : "👤",
+        photoUrl: p?.avatar_url || null,
+      };
+    });
 
     const attendeeAvatars = [
-      hostAvatar,
-      ...rsvpAvatars.filter(a => a !== hostAvatar)
+      hostAttendee,
+      ...rsvpAttendees.filter(a => a.emoji !== hostAttendee.emoji)
     ].slice(0, 3);
 
     return {
@@ -806,7 +840,7 @@ export default function App() {
         pd.host?.name ||
         (pd.host_id === session?.user?.id ? profile.name : null) ||
         "Someone",
-      hostAvatar: hostAvatar,
+      hostAvatar: hostAttendee.emoji,
       description: pd.description || "",
       x: pin.x,
       y: pin.y,
@@ -889,6 +923,7 @@ export default function App() {
     localStorage.removeItem("ppd_preview_seen");
     localStorage.removeItem("ppd_show_preview");
     sessionStorage.removeItem("ppd_seen_preview_modal");
+    sessionStorage.removeItem("ppd_active_nav");
 
     setSession(null);
     setProfile(getDefaultProfile());
@@ -1362,7 +1397,7 @@ export default function App() {
         created={created}
         setCreated={setCreated}
         activeNav={activeNav}
-        setActiveNav={setActiveNav}
+        handleSetActiveNav={handleSetActiveNav}
         myDatesTab={myDatesTab}
         setMyDatesTab={setMyDatesTab}
         showToast={showToast}

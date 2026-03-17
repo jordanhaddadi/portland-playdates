@@ -24,7 +24,41 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
         <div className="detail-row"><span className="detail-icon">📍</span><div><div>{showDetail.venue}</div><div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{showDetail.addr}</div></div></div>
         <div className="detail-row"><span className="detail-icon">🌤</span><span>{showDetail.weather}</span></div>
         <div className="detail-row"><span className="detail-icon">💬</span><span>{showDetail.description}</span></div>
-        <div className="detail-row"><span className="detail-icon">👥</span><div><div>{showDetail.count} Portland parents going</div><div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>Public meetup · Kid-friendly venue</div></div></div>
+        <div className="detail-row">
+          <span className="detail-icon">👥</span>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div className="avatar-stack">
+                {(showDetail.attendees || []).slice(0,3).map((a,i) => (
+                  <div
+                    key={i}
+                    className="avatar-sm"
+                    style={{background:["#EAF3F8","#EEF4EF","#FDF0E8"][i%3]}}
+                  >
+                    {a && a.photoUrl ? (
+                      <img
+                        src={a.photoUrl}
+                        alt="attendee"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          borderRadius: "50%",
+                        }}
+                      />
+                    ) : (
+                      a.emoji || a
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 13, color: "var(--muted)" }}>
+                {showDetail.count} Portland parents going
+              </div>
+            </div>
+            <div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>Public meetup · Kid-friendly venue</div>
+          </div>
+        </div>
         <button className={`rsvp-btn ${(showDetail._isDb ? showDetail._joined : joined[showDetail.id]) ? "going" : ""}`}
           onClick={() => {
             if (showDetail._isDb && onToggleJoin) {
