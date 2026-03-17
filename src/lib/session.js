@@ -116,3 +116,85 @@ export async function replaceKids(userId, kids) {
   return insRes.data;
 }
 
+export async function createPlaydate(userId, form) {
+  const payload = {
+    ...form,
+    host_id: userId,
+  };
+
+  const res = await supabase
+    .from("playdates")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (res.error) {
+    throw res.error;
+  }
+
+  return res.data;
+}
+
+export async function fetchPlaydates() {
+  const res = await supabase
+    .from("playdates")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (res.error) {
+    throw res.error;
+  }
+
+  return res.data || [];
+}
+
+export async function fetchRsvps() {
+  const res = await supabase
+    .from("rsvps")
+    .select(`
+      *,
+      profiles:profile_id (
+        id,
+        name,
+        avatar,
+        tone
+      )
+    `);
+
+  if (res.error) {
+    throw res.error;
+  }
+
+  return res.data || [];
+}
+
+export async function joinPlaydate(playdateId, userId) {
+  const res = await supabase
+    .from("rsvps")
+    .upsert(
+      {
+        playdate_id: playdateId,
+        profile_id: userId,
+      },
+      { onConflict: "playdate_id,profile_id" }
+    )
+    .select("*");
+
+  if (res.error) throw res.error;
+  return res.data;
+}
+
+export async function leavePlaydate(playdateId, userId) {
+  const res = await supabase
+    .from("rsvps")
+    .delete()
+    .eq("playdate_id", playdateId)
+    .eq("profile_id", userId);
+
+  if (res.error) {
+    throw res.error;
+  }
+
+  return res.data;
+}
+

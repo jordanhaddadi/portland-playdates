@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
 import { FOUNDER_EMAIL, AVATARS, KID_EMOJIS, HOODS, AGE_GROUPS, PORTLAND_VENUES, TOWNS_NEARBY, VENUE_TYPES, VENUE_PERKS, ALL_NEIGHBORHOODS, PLAYDATES, HOOD_PIN_DEFAULTS, pinColor } from './constants';
 import { FONT, styles } from './styles/index';
-import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids } from './lib/session';
+import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids, createPlaydate, fetchPlaydates, fetchRsvps, joinPlaydate, leavePlaydate } from './lib/session';
 import { WelcomeScreen } from './components/onboarding/WelcomeScreen';
 import { AboutYouScreen } from './components/onboarding/AboutYouScreen';
 import { YourKidsScreen } from './components/onboarding/YourKidsScreen';
@@ -29,6 +29,7 @@ function MainApp({
   isEditingKids,
   setIsEditingKids,
   handleSaveKids,
+  handleToggleJoin,
   obStep, setObStep, profile, setProfile, kids, setKids,
   showTallySuccess, setShowTallySuccess, showPreviewModal, setShowPreviewModal,
   view, setView, activeHood, setActiveHood, activePin, setActivePin,
@@ -314,9 +315,18 @@ function MainApp({
                         <div className="peek-title">{activePd.title}</div>
                         <div className="peek-meta">🕐 {activePd.date} · {activePd.count} going</div>
                       </div>
-                      <button className={`peek-join ${joined[activePd.id]?"joined":""}`}
-                        onClick={e => { e.stopPropagation(); setJoined(j => ({...j,[activePd.id]:!j[activePd.id]})); }}>
-                        {joined[activePd.id] ? "✓" : "Join"}
+                      <button
+                        className={`peek-join ${(activePd._isDb ? activePd._joined : joined[activePd.id]) ? "joined" : ""}`}
+                        onClick={e => {
+                          e.stopPropagation();
+                          if (activePd._isDb) {
+                            handleToggleJoin(activePd.id);
+                          } else {
+                            setJoined(j => ({...j,[activePd.id]:!j[activePd.id]}));
+                          }
+                        }}
+                      >
+                        {(activePd._isDb ? activePd._joined : joined[activePd.id]) ? "✓" : "Join"}
                       </button>
                     </div>
                   </div>
@@ -409,13 +419,17 @@ function MainApp({
                         <span className="attendee-text">{pd.count} going</span>
                       </div>
                       <button
-                        className={`join-btn ${joined[pd.id] ? "joined" : ""}`}
+                        className={`join-btn ${(pd._isDb ? pd._joined : joined[pd.id]) ? "joined" : ""}`}
                         onClick={e => {
                           e.stopPropagation();
-                          setJoined(j => ({ ...j, [pd.id]: !j[pd.id] }));
+                          if (pd._isDb) {
+                            handleToggleJoin(pd.id);
+                          } else {
+                            setJoined(j => ({ ...j, [pd.id]: !j[pd.id] }));
+                          }
                         }}
                       >
-                        {joined[pd.id] ? "✓ Going!" : "Join"}
+                        {(pd._isDb ? pd._joined : joined[pd.id]) ? "✓ Going!" : "Join"}
                       </button>
                     </div>
                   </div>
@@ -503,6 +517,7 @@ function MainApp({
           setShowDetail={setShowDetail}
           joined={joined}
           setJoined={setJoined}
+          onToggleJoin={handleToggleJoin}
         />
       </div>
     </>
@@ -545,17 +560,59 @@ export default function App() {
   const [userVenues, setUserVenues] = useState([]);
   const [formData, setFormData] = useState({ title: "", date: "", time: "" });
   const [created, setCreated] = useState([]);
+  const [dbPlaydates, setDbPlaydates] = useState([]);
+  const [dbRsvps, setDbRsvps] = useState([]);
   const [activeNav, setActiveNav] = useState("home");
   const [myDatesTab, setMyDatesTab] = useState("going");
   const [showToast, setShowToast] = useState(false);
 
   const allVenues = [...PORTLAND_VENUES, ...userVenues];
-  const allDates = [...created, ...PLAYDATES];
+  const mappedDbPlaydates = dbPlaydates.map(pd => {
+    const rsvpsForDate = dbRsvps.filter(r => r.playdate_id === pd.id);
+    const isJoined = session?.user?.id
+      ? rsvpsForDate.some(r => r.profile_id === session.user.id)
+      : false;
+
+    const pin = HOOD_PIN_DEFAULTS[pd.hood] || HOOD_PIN_DEFAULTS.default;
+
+    return {
+      id: pd.id,
+      emoji: pd.emoji || "🌟",
+      bg: "linear-gradient(135deg,#FDF0E8,#EDB99E)",
+      title: pd.title,
+      venue: pd.venue || "TBD venue",
+      addr: pd.addr || "",
+      hood: pd.hood || pd.town || "Portland",
+      ages: pd.ages || "All ages",
+      date: [pd.date, pd.time].filter(Boolean).join(" · "),
+      weather: "📍 Real playdate",
+      attendees: rsvpsForDate
+        .map(r => {
+          const p = r.profiles;
+          return p ? `${p.avatar || "👤"}${p.tone || ""}` : "👤";
+        })
+        .slice(0, 3),
+      count: rsvpsForDate.length,
+      host: profile.name || "Host",
+      description: pd.description || "",
+      x: pin.x,
+      y: pin.y,
+      comingSoon: false,
+      _isDb: true,
+      _joined: isJoined,
+      _hostId: pd.host_id,
+    };
+  });
+
+  const allDates =
+    mappedDbPlaydates.length > 0
+      ? [...mappedDbPlaydates, ...created]
+      : [...mappedDbPlaydates, ...created, ...PLAYDATES];
   const filtered = activeHood === "All" ? allDates : allDates.filter(p => p.hood === activeHood);
   const activePd = activePin != null ? allDates.find(p => p.id === activePin) : null;
   const isPreviewingApp = obStep === 4;
-  const goingDates = allDates.filter(pd => joined[pd.id] === true);
-  const hostingDates = created;
+  const goingDates = allDates.filter(pd => joined[pd.id] === true || pd._joined);
+  const hostingDates = allDates.filter(pd => pd._hostId === session?.user?.id || created.some(c => c.id === pd.id));
 
   const toggleTown = id => setActiveTowns(t => t.includes(id) ? (t.length > 1 ? t.filter(x=>x!==id) : t) : [...t, id]);
 
@@ -627,6 +684,32 @@ export default function App() {
       setObStep(4);
     } catch (e) {
       console.error("Failed to save kids:", e);
+    }
+  };
+
+  const handleToggleJoin = async (playdateId) => {
+    if (!session?.user?.id) return;
+
+    const alreadyJoined = dbRsvps.some(
+      r => r.playdate_id === playdateId && r.profile_id === session.user.id
+    );
+
+    try {
+      if (alreadyJoined) {
+        await leavePlaydate(playdateId, session.user.id);
+      } else {
+        await joinPlaydate(playdateId, session.user.id);
+      }
+
+      const refreshedRsvps = await fetchRsvps();
+      setDbRsvps(refreshedRsvps);
+
+      setJoined(j => ({
+        ...j,
+        [playdateId]: !alreadyJoined,
+      }));
+    } catch (e) {
+      console.error("Failed to toggle RSVP:", e);
     }
   };
 
@@ -728,6 +811,32 @@ export default function App() {
   }, [session, hasProfile, obStep, profile, kids]);
 
   useEffect(() => {
+    if (!authReady) return;
+    if (!session?.user?.id) return;
+
+    (async () => {
+      try {
+        const [pds, rsvps] = await Promise.all([fetchPlaydates(), fetchRsvps()]);
+        setDbPlaydates(pds);
+        setDbRsvps(rsvps);
+      } catch (e) {
+        console.error("Failed to load playdates or RSVPs:", e);
+      }
+    })();
+  }, [authReady, session]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const map = {};
+    for (const r of dbRsvps) {
+      if (r.profile_id === session.user.id) {
+        map[r.playdate_id] = true;
+      }
+    }
+    setJoined(j => ({ ...j, ...map }));
+  }, [dbRsvps, session]);
+
+  useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
@@ -755,13 +864,47 @@ export default function App() {
     submitHelper = "Choose a venue to continue";
   }
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!formData.title || !selectedVenue) {
       return;
     }
     const v = allVenues.find(v => v.name === selectedVenue);
     const hoodName = v?.hood || profile.town || profile.hood || "Portland";
     const pin = HOOD_PIN_DEFAULTS[hoodName] || HOOD_PIN_DEFAULTS.default;
+
+    if (session?.user?.id) {
+      try {
+        await createPlaydate(session.user.id, {
+          title: formData.title,
+          venue: v?.name || selectedVenue,
+          addr: v?.addr || "",
+          town: profile.town || "Portland",
+          hood: v?.hood || profile.hood || profile.town || "Portland",
+          date: formData.date,
+          time: formData.time,
+          ages: selectedAges.join(", ") || "All ages",
+          description: "New playdate!",
+          emoji: v?.emoji || "🌟",
+          max_kids: null
+        });
+
+        const [pds, rsvps] = await Promise.all([fetchPlaydates(), fetchRsvps()]);
+        setDbPlaydates(pds);
+        setDbRsvps(rsvps);
+      } catch (e) {
+        console.error("Failed to create playdate:", e);
+      }
+
+      setShowCreate(false);
+      setFormData({ title:"", date:"", time:"" });
+      setSelectedAges([]);
+      setSelectedVenue(null);
+      setShowAddVenue(false);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      return;
+    }
+
     setCreated(p => [
       {
         id: Date.now(),
@@ -806,6 +949,7 @@ export default function App() {
         isEditingKids={isEditingKids}
         setIsEditingKids={setIsEditingKids}
         handleSaveKids={handleSaveKids}
+        handleToggleJoin={handleToggleJoin}
         obStep={obStep}
         setObStep={setObStep}
         profile={profile}

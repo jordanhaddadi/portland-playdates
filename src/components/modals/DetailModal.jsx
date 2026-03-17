@@ -1,4 +1,4 @@
-export function DetailModal({ showDetail, setShowDetail, joined, setJoined }) {
+export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onToggleJoin }) {
   if (!showDetail) return null;
 
   return (
@@ -17,9 +17,16 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined }) {
         <div className="detail-row"><span className="detail-icon">🌤</span><span>{showDetail.weather}</span></div>
         <div className="detail-row"><span className="detail-icon">💬</span><span>{showDetail.description}</span></div>
         <div className="detail-row"><span className="detail-icon">👥</span><div><div>{showDetail.count} Portland parents going</div><div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>Public meetup · Kid-friendly venue</div></div></div>
-        <button className={`rsvp-btn ${joined[showDetail.id]?"going":""}`}
-          onClick={() => { setJoined(j=>({...j,[showDetail.id]:!j[showDetail.id]})); setShowDetail(null); }}>
-          {joined[showDetail.id]?"✓ You're Going! 🎉":"RSVP — I'm In! 🙌"}
+        <button className={`rsvp-btn ${(showDetail._isDb ? showDetail._joined : joined[showDetail.id]) ? "going" : ""}`}
+          onClick={() => {
+            if (showDetail._isDb && onToggleJoin) {
+              onToggleJoin(showDetail.id);
+            } else {
+              setJoined(j=>({...j,[showDetail.id]:!j[showDetail.id]}));
+            }
+            setShowDetail(null);
+          }}>
+          {(showDetail._isDb ? showDetail._joined : joined[showDetail.id]) ? "✓ You're Going! 🎉" : "RSVP - I'm In! 🙌"}
         </button>
       </div>
     </div>
