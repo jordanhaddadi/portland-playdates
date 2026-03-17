@@ -1,24 +1,39 @@
 import { supabase } from "./supabase";
 
+export const getDefaultProfile = () => ({
+  name: "",
+  hood: "",
+  avatar: "",
+  town: "",
+  tone: "",
+});
+
+export const getDefaultSession = () => ({
+  obStep: 0,
+  profile: getDefaultProfile(),
+  kids: [],
+});
+
 export function loadSession() {
+  const base = getDefaultSession();
   try {
     const saved = localStorage.getItem("ppd_beta_session");
     if (saved) {
       const parsed = JSON.parse(saved);
       return {
-        obStep: parsed.obStep || 0,
-        profile: parsed.profile || { name: "", hood: "", avatar: "", town: "", tone: "" },
-        kids: parsed.kids || [],
+        ...base,
+        ...parsed,
+        profile: {
+          ...base.profile,
+          ...(parsed.profile || {}),
+        },
+        kids: Array.isArray(parsed.kids) ? parsed.kids : [],
       };
     }
   } catch (e) {
     // ignore parse errors
   }
-  return {
-    obStep: 0,
-    profile: { name: "", hood: "", avatar: "", town: "", tone: "" },
-    kids: [],
-  };
+  return base;
 }
 
 export async function getCurrentUser() {

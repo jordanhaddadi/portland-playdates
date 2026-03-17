@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
 import { FOUNDER_EMAIL, AVATARS, KID_EMOJIS, HOODS, AGE_GROUPS, PORTLAND_VENUES, TOWNS_NEARBY, VENUE_TYPES, VENUE_PERKS, ALL_NEIGHBORHOODS, PLAYDATES, HOOD_PIN_DEFAULTS, pinColor } from './constants';
 import { FONT, styles } from './styles/index';
-import { loadSession, fetchProfileAndKids, upsertProfile, replaceKids } from './lib/session';
+import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids } from './lib/session';
 import { WelcomeScreen } from './components/onboarding/WelcomeScreen';
 import { AboutYouScreen } from './components/onboarding/AboutYouScreen';
 import { YourKidsScreen } from './components/onboarding/YourKidsScreen';
@@ -36,6 +36,27 @@ function MainApp({
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
   handleShare, topbarCopied,
 }) {
+  if (enableAuth && !authReady) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: FONT }} />
+        <style dangerouslySetInnerHTML={{ __html: styles }} />
+        <div className="ob-screen ob-welcome">
+          <div className="ob-blob1" />
+          <div className="ob-blob2" />
+          <div className="ob-blob3" />
+          <div className="auth-wrap">
+            <div className="auth-card auth-card-otp">
+              <div className="auth-logo auth-logo-mail">⚓</div>
+              <h2 className="auth-title">Loading…</h2>
+              <p className="auth-sub">Checking your session.</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   if (enableAuth && !session) {
     return (
       <>
@@ -110,7 +131,7 @@ function MainApp({
                       localStorage.removeItem("ppd_beta_session");
                       localStorage.removeItem("ppd_show_preview");
                       setObStep(0);
-                      setProfile({ name: "", hood: "", avatar: "", town: "", tone: "" });
+                      setProfile(getDefaultProfile());
                       setKids([]);
                       setShowPreviewModal(false);
                     }}
