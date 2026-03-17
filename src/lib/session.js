@@ -4,6 +4,7 @@ export const getDefaultProfile = () => ({
   name: "",
   hood: "",
   avatar: "",
+  avatar_url: "",
   town: "",
   tone: "",
   role: "",
@@ -73,6 +74,7 @@ export async function upsertProfile(userId, profile) {
     town: profile?.town || "",
     hood: profile?.hood || "",
     avatar: profile?.avatar || "",
+    avatar_url: profile?.avatar_url || "",
     tone: profile?.tone || "",
     bio: profile?.bio || "",
     role: profile?.role || "",
@@ -88,6 +90,35 @@ export async function upsertProfile(userId, profile) {
     throw res.error;
   }
   return res.data;
+}
+
+export async function uploadAvatar(userId, file) {
+  const ext = file.name.split(".").pop();
+  const path = `${userId}/avatar.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, {
+      upsert: true,
+      contentType: file.type,
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from("avatars")
+    .getPublicUrl(path);
+
+  const publicUrl = data.publicUrl;
+
+  const { error: updateError } = await supabase
+    .from("profiles")
+    .update({ avatar_url: publicUrl })
+    .eq("id", userId);
+
+  if (updateError) throw updateError;
+
+  return publicUrl;
 }
 
 export async function replaceKids(userId, kids) {

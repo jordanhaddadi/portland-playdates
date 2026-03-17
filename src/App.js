@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { FOUNDER_EMAIL, AVATARS, KID_EMOJIS, HOODS, AGE_GROUPS, PORTLAND_VENUES, TOWNS_NEARBY, VENUE_TYPES, VENUE_PERKS, ALL_NEIGHBORHOODS, PLAYDATES, HOOD_PIN_DEFAULTS, pinColor } from './constants';
 import { FONT, styles } from './styles/index';
-import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids, createPlaydate, fetchPlaydates, fetchRsvps, joinPlaydate, leavePlaydate, fetchVenues, createVenueSubmission } from './lib/session';
+import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids, createPlaydate, fetchPlaydates, fetchRsvps, joinPlaydate, leavePlaydate, fetchVenues, createVenueSubmission, uploadAvatar } from './lib/session';
 import { WelcomeScreen } from './components/onboarding/WelcomeScreen';
 import { AboutYouScreen } from './components/onboarding/AboutYouScreen';
 import { YourKidsScreen } from './components/onboarding/YourKidsScreen';
@@ -271,7 +271,17 @@ function MainApp({
                   </button>
                 </>
               )}
-              <button className="user-avatar-btn" title="Profile">{profile.avatar + (profile.tone || "") || "👩"}</button>
+              <button className="user-avatar-btn" title="Profile">
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt="avatar"
+                    className="topbar-avatar-photo"
+                  />
+                ) : (
+                  profile.avatar + (profile.tone || "") || "👩"
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -279,7 +289,17 @@ function MainApp({
         {/* PERSONALIZED GREETING (HOME FEED ONLY) */}
         {activeNav === "home" && view === "list" && (
           <div className="greeting-bar">
-            <div className="greeting-avatar">{profile.avatar + (profile.tone || "") || "👩"}</div>
+            <div className="greeting-avatar">
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt="avatar"
+                  className="greeting-avatar-photo"
+                />
+              ) : (
+                profile.avatar + (profile.tone || "") || "👩"
+              )}
+            </div>
             <div className="greeting-text">
               <div className="greeting-name">Hey, {profile.name || "there"}! 👋</div>
               <div className="greeting-kids">
@@ -324,6 +344,12 @@ function MainApp({
             kids={kids}
             session={session}
             setProfile={setProfile}
+            onAvatarUpload={async (file) => {
+              if (!session?.user?.id) return;
+              const url = await uploadAvatar(session.user.id, file);
+              setProfile(p => ({ ...p, avatar_url: url }));
+              return url;
+            }}
             hostedCount={hostingDates.length}
             joinedCount={goingDates.length}
             showLogout={enableAuth && isAuthed}
@@ -573,13 +599,24 @@ function MainApp({
           <div style={{flex:1,display:"flex",justifyContent:"center"}}>
             <button className="add-btn" onClick={() => setShowCreate(true)}>＋</button>
           </div>
-          {[{id:"dates",icon:"📅",label:"My Dates"},{id:"profile",icon:profile.avatar + (profile.tone || "") || "👩",label:"Profile"}].map(n => (
+          {[{id:"dates",icon:"📅",label:"My Dates"},{id:"profile",icon:(profile.avatar + (profile.tone || "") || "👩"),label:"Profile"}].map(n => (
             <button key={n.id} className={`nav-item ${activeNav===n.id?"active":""}`}
               onClick={() => {
                 setActiveNav(n.id);
                 if (n.id === "dates") setMyDatesTab("going");
               }}>
-              <span className="nav-icon">{n.icon}</span><span className="nav-label">{n.label}</span>
+              <span className="nav-icon">
+                {n.id === "profile" && profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt="avatar"
+                    className="nav-avatar-photo"
+                  />
+                ) : (
+                  n.icon
+                )}
+              </span>
+              <span className="nav-label">{n.label}</span>
             </button>
           ))}
         </div>
@@ -1017,6 +1054,7 @@ export default function App() {
             town: remoteProfile.town || "",
             hood: remoteProfile.hood || "",
             avatar: remoteProfile.avatar || "",
+            avatar_url: remoteProfile.avatar_url || "",
             tone: remoteProfile.tone || "",
             bio: remoteProfile.bio || "",
             role: remoteProfile.role || "",

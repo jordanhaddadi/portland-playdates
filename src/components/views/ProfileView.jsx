@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { upsertProfile } from "../../lib/session";
 
 function ProfileView({
@@ -11,10 +11,14 @@ function ProfileView({
   showLogout,
   session,
   setProfile,
+  onAvatarUpload,
   hostedCount = 0,
   joinedCount = 0,
 }) {
   const avatar = (profile.avatar || "") + (profile.tone || "");
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const name = profile.name || "Your profile";
   const role = profile?.role || "";
   const hood = profile?.hood || "";
@@ -38,6 +42,28 @@ function ProfileView({
     setBioValue(profile?.bio || "");
   }, [profile?.bio]);
 
+  useEffect(() => {
+    setAvatarUrl(profile?.avatar_url || "");
+  }, [profile?.avatar_url]);
+
+  const triggerFileInput = () => fileInputRef.current?.click();
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (typeof onAvatarUpload !== "function") return;
+    setUploading(true);
+    try {
+      const url = await onAvatarUpload(file);
+      if (url) setAvatarUrl(url);
+    } catch (err) {
+      console.error("Avatar upload failed:", err);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
   const formatKidAge = (age) => {
     if (age == null) return "";
     const text = String(age).trim();
@@ -50,7 +76,28 @@ function ProfileView({
   return (
     <div className="profile-page">
       <div className="profile-hero">
-        <div className="profile-avatar-large">{avatar || "👩"}</div>
+        <div className="profile-avatar-wrap" onClick={triggerFileInput}>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Profile"
+              className="profile-avatar-photo"
+            />
+          ) : (
+            <div className="profile-avatar-large">{avatar || "👩"}</div>
+          )}
+          <div className="profile-avatar-edit-badge">📷</div>
+          {uploading && (
+            <div className="profile-avatar-uploading">uploading...</div>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
         <div className="profile-name-large">{name}</div>
         <div className="profile-meta">{meta}</div>
       </div>

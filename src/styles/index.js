@@ -907,6 +907,75 @@ export const styles = `
     font-size: 14px;
     margin-top: 8px;
   }
+
+  .profile-avatar-wrap {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+
+  .profile-avatar-photo {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  }
+
+  .profile-avatar-edit-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: white;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    cursor: pointer;
+  }
+
+  .profile-avatar-uploading {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .topbar-avatar-photo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+  }
+
+  .greeting-avatar-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+  }
+
+  .nav-avatar-photo {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+  }
   /* ── BETA BADGE ── */
   .beta-badge { background: var(--terracotta); color: white; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; vertical-align: middle; margin-left: 6px; letter-spacing: 0.5px; font-family: 'DM Sans', sans-serif; }
   .beta-badge-onboarding { background: rgba(196,88,58,0.2); color: var(--terracotta-light); }
