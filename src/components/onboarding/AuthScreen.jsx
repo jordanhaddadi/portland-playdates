@@ -92,7 +92,7 @@ export function AuthScreen({ onSuccess }) {
             <h2 className="auth-title">Check your email</h2>
 
             <p className="auth-sub">
-              We sent a 6 digit code to <strong>{email}</strong>.
+              We sent an 8 digit code to <strong>{email}</strong>.
               Enter it below to continue.
             </p>
 
@@ -192,7 +192,7 @@ export function AuthScreen({ onSuccess }) {
           </button>
 
           <div className="auth-helper">
-            No password needed. We will email you a 6 digit code.
+            No password needed. We will email you an 8 digit code.
           </div>
 
           {error && <div className="ob-error">{error}</div>}
