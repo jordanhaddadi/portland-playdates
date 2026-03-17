@@ -23,6 +23,12 @@ function MainApp({
   enableAuth,
   authReady,
   loadingProfile,
+  isEditingProfile,
+  setIsEditingProfile,
+  handleSaveProfile,
+  isEditingKids,
+  setIsEditingKids,
+  handleSaveKids,
   obStep, setObStep, profile, setProfile, kids, setKids,
   showTallySuccess, setShowTallySuccess, showPreviewModal, setShowPreviewModal,
   view, setView, activeHood, setActiveHood, activePin, setActivePin,
@@ -87,9 +93,35 @@ function MainApp({
   if (obStep === 0) return <><style dangerouslySetInnerHTML={{ __html: FONT }} />
       <style dangerouslySetInnerHTML={{ __html: styles }} /><WelcomeScreen onNext={() => setObStep(1)} /></>;
   if (obStep === 1) return <><style dangerouslySetInnerHTML={{ __html: FONT }} />
-      <style dangerouslySetInnerHTML={{ __html: styles }} /><AboutYouScreen onNext={() => setObStep(2)} onBack={() => setObStep(0)} profile={profile} setProfile={setProfile} /></>;
+      <style dangerouslySetInnerHTML={{ __html: styles }} /><AboutYouScreen
+        onNext={() => setObStep(2)}
+        onBack={isEditingProfile
+          ? () => {
+            setIsEditingProfile(false);
+            setObStep(4);
+          }
+          : () => setObStep(0)}
+        profile={profile}
+        setProfile={setProfile}
+        isEditingProfile={isEditingProfile}
+        onSaveProfile={handleSaveProfile}
+      /></>;
   if (obStep === 2) return <><style dangerouslySetInnerHTML={{ __html: FONT }} />
-      <style dangerouslySetInnerHTML={{ __html: styles }} /><YourKidsScreen onDone={() => setObStep(3)} onBack={() => setObStep(1)} profile={profile} kids={kids} setKids={setKids} /></>;
+      <style dangerouslySetInnerHTML={{ __html: styles }} /><YourKidsScreen
+        onDone={() => setObStep(3)}
+        onBack={isEditingKids
+          ? () => {
+            setIsEditingKids(false);
+            setIsEditingProfile(true);
+            setObStep(1);
+          }
+          : () => setObStep(1)}
+        profile={profile}
+        kids={kids}
+        setKids={setKids}
+        isEditingKids={isEditingKids}
+        onSaveKids={handleSaveKids}
+      /></>;
   if (obStep === 3) return <><style dangerouslySetInnerHTML={{ __html: FONT }} />
       <style dangerouslySetInnerHTML={{ __html: styles }} /><WaitlistScreen profile={profile} onPreview={() => setObStep(4)} onFormSubmitted={() => setShowTallySuccess(true)} showTallySuccess={showTallySuccess} /></>;
 
@@ -180,7 +212,10 @@ function MainApp({
                 : `${profile.town || "Portland"}${profile.hood ? ` (${profile.hood})` : ""} · Tap to add kids`}
             </div>
           </div>
-          <button className="greeting-edit" onClick={() => setObStep(1)}>Edit</button>
+          <button className="greeting-edit" onClick={() => {
+            setIsEditingProfile(true);
+            setObStep(1);
+          }}>Edit</button>
         </div>
 
         {/* VIEW TOGGLE */}
@@ -412,7 +447,10 @@ function MainApp({
             <button key={n.id} className={`nav-item ${activeNav===n.id?"active":""}`}
               onClick={() => {
                 setActiveNav(n.id);
-                if (n.id === "profile") setObStep(1);
+                if (n.id === "profile") {
+                  setIsEditingProfile(true);
+                  setObStep(1);
+                }
                 if (n.id === "dates") setMyDatesTab("going");
               }}>
               <span className="nav-icon">{n.icon}</span><span className="nav-label">{n.label}</span>
@@ -487,6 +525,8 @@ export default function App() {
   const [showTallySuccess, setShowTallySuccess] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [topbarCopied, setTopbarCopied] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isEditingKids, setIsEditingKids] = useState(false);
   const isFirstRender = useRef(true);
 
   // App state
@@ -541,6 +581,56 @@ export default function App() {
       );
       setTopbarCopied(true);
       setTimeout(() => setTopbarCopied(false), 2000);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setProfile(p => ({ ...p }));
+    try {
+      console.log("Saving profile to Supabase:", session?.user?.id, profile);
+      if (session?.user?.id) {
+        await upsertProfile(session.user.id, profile);
+        console.log("Profile saved successfully");
+      }
+
+      localStorage.setItem(
+        "ppd_beta_session",
+        JSON.stringify({
+          obStep: 4,
+          profile,
+          kids,
+        })
+      );
+
+      setIsEditingProfile(false);
+      setIsEditingKids(true);
+      setObStep(2);
+    } catch (e) {
+      console.error("Failed to save profile:", e);
+    }
+  };
+
+  const handleSaveKids = async () => {
+    try {
+      console.log("Saving kids to Supabase:", session?.user?.id, kids);
+      if (session?.user?.id) {
+        await replaceKids(session.user.id, kids);
+        console.log("Kids saved successfully");
+      }
+
+      localStorage.setItem(
+        "ppd_beta_session",
+        JSON.stringify({
+          obStep: 4,
+          profile,
+          kids,
+        })
+      );
+
+      setIsEditingKids(false);
+      setObStep(4);
+    } catch (e) {
+      console.error("Failed to save kids:", e);
     }
   };
 
@@ -714,6 +804,12 @@ export default function App() {
         enableAuth={enableAuth}
         authReady={authReady}
         loadingProfile={loadingProfile}
+        isEditingProfile={isEditingProfile}
+        setIsEditingProfile={setIsEditingProfile}
+        handleSaveProfile={handleSaveProfile}
+        isEditingKids={isEditingKids}
+        setIsEditingKids={setIsEditingKids}
+        handleSaveKids={handleSaveKids}
         obStep={obStep}
         setObStep={setObStep}
         profile={profile}

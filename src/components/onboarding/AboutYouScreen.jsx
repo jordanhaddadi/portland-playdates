@@ -6,7 +6,14 @@ const TOWN_OPTIONS = [
   ...TOWNS_NEARBY.filter(t => t.id !== "gorham"),
 ];
 
-export function AboutYouScreen({ onNext, onBack, profile, setProfile }) {
+export function AboutYouScreen({
+  onNext,
+  onBack,
+  profile,
+  setProfile,
+  isEditingProfile,
+  onSaveProfile,
+}) {
   return (
     <div className="ob-screen" style={{ background: "var(--cream)" }}>
       <div className="ob-card">
@@ -104,8 +111,13 @@ export function AboutYouScreen({ onNext, onBack, profile, setProfile }) {
           )}
         </div>
 
-        <button className="ob-btn-primary" disabled={!profile.name || !profile.town || !profile.avatar}
-          onClick={onNext}>Continue →</button>
+        <button
+          className="ob-btn-primary"
+          disabled={!profile.name || !profile.town || !profile.avatar}
+          onClick={isEditingProfile ? onSaveProfile : onNext}
+        >
+          {isEditingProfile ? "Save changes" : "Continue →"}
+        </button>
       </div>
     </div>
   );

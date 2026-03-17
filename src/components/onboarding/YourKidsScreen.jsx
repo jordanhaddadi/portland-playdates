@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { KID_EMOJIS } from "../../constants";
 
-export function YourKidsScreen({ onDone, onBack, profile, kids, setKids }) {
+export function YourKidsScreen({
+  onDone,
+  onBack,
+  profile,
+  kids,
+  setKids,
+  isEditingKids,
+  onSaveKids,
+}) {
   const [showForm, setShowForm] = useState(false);
   const [newKid, setNewKid] = useState({ name: "", age: "", emoji: "🧒" });
 
@@ -80,8 +88,13 @@ export function YourKidsScreen({ onDone, onBack, profile, kids, setKids }) {
               You can skip this and add kids later from your profile.
             </div>
           )}
-          <button className="ob-btn-primary" onClick={onDone}>
-            {kids.length > 0 ? `Let's find playdates! 🎉` : "Skip for now →"}
+          <button
+            className="ob-btn-primary"
+            onClick={isEditingKids ? onSaveKids : onDone}
+          >
+            {isEditingKids
+              ? (kids.length > 0 ? "Save kids" : "Save and continue")
+              : (kids.length > 0 ? `Let's find playdates! 🎉` : "Skip for now →")}
           </button>
         </div>
       </div>
