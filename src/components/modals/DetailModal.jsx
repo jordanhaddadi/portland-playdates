@@ -11,7 +11,15 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
           <span className="tag tag-venue">📍 {showDetail.hood}</span>
         </div>
         <div className="detail-title">{showDetail.title}</div>
-        <div className="detail-host">Hosted by {showDetail.host}</div>
+        <div
+          style={{
+            fontSize: 13,
+            color: "var(--muted)",
+            marginTop: 6,
+          }}
+        >
+          Hosted by {showDetail.hostName || showDetail.host || "Host"}
+        </div>
         <div className="detail-row"><span className="detail-icon">🕐</span><span>{showDetail.date}</span></div>
         <div className="detail-row"><span className="detail-icon">📍</span><div><div>{showDetail.venue}</div><div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{showDetail.addr}</div></div></div>
         <div className="detail-row"><span className="detail-icon">🌤</span><span>{showDetail.weather}</span></div>

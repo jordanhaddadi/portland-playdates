@@ -1,22 +1,76 @@
 import { supabase } from './lib/supabase';
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { FOUNDER_EMAIL, AVATARS, KID_EMOJIS, HOODS, AGE_GROUPS, PORTLAND_VENUES, TOWNS_NEARBY, VENUE_TYPES, VENUE_PERKS, ALL_NEIGHBORHOODS, PLAYDATES, HOOD_PIN_DEFAULTS, pinColor } from './constants';
 import { FONT, styles } from './styles/index';
-import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids, createPlaydate, fetchPlaydates, fetchRsvps, joinPlaydate, leavePlaydate } from './lib/session';
+import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids, createPlaydate, fetchPlaydates, fetchRsvps, joinPlaydate, leavePlaydate, fetchVenues, createVenueSubmission } from './lib/session';
 import { WelcomeScreen } from './components/onboarding/WelcomeScreen';
 import { AboutYouScreen } from './components/onboarding/AboutYouScreen';
 import { YourKidsScreen } from './components/onboarding/YourKidsScreen';
 import { WaitlistScreen } from './components/onboarding/WaitlistScreen';
 import { AuthScreen } from "./components/onboarding/AuthScreen";
-import { MyDatesView } from './components/MyDatesView';
-import { SuccessPage } from './components/SuccessPage';
+import { MyDatesView } from './components/views/MyDatesView';
+import { ProfileView } from "./components/views/ProfileView";
+import { SuccessPage } from './components/views/SuccessPage';
 import { CreateModal } from './components/modals/CreateModal';
 import { DetailModal } from './components/modals/DetailModal';
 import { TownsModal } from './components/modals/TownsModal';
 import { PreviewModal } from './components/modals/PreviewModal';
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
+
+function formatPlaydateDate(dateStr) {
+  if (!dateStr) return "";
+
+  const today = new Date();
+  const target = new Date(dateStr);
+
+  const todayMidnight = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
+  const tomorrowMidnight = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() + 1
+  );
+
+  const targetMidnight = new Date(
+    target.getFullYear(),
+    target.getMonth(),
+    target.getDate()
+  );
+
+  if (targetMidnight.getTime() === todayMidnight.getTime()) {
+    return "Today";
+  }
+
+  if (targetMidnight.getTime() === tomorrowMidnight.getTime()) {
+    return "Tomorrow";
+  }
+
+  return target.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatPlaydateTime(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return "";
+
+  const d = new Date(`${dateStr}T${timeStr}`);
+
+  const datePart = formatPlaydateDate(dateStr);
+
+  const timePart = d.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  return `${datePart} · ${timePart}`;
+}
 
 function MainApp({
   session,
@@ -34,7 +88,7 @@ function MainApp({
   showTallySuccess, setShowTallySuccess, showPreviewModal, setShowPreviewModal,
   view, setView, activeHood, setActiveHood, activePin, setActivePin,
   showDetail, setShowDetail, showCreate, setShowCreate, showTowns, setShowTowns,
-  activeTowns, toggleTown, townLabel, joined, setJoined,
+  activeTowns, toggleTown, townLabel, selectedTownNames, joined, setJoined,
   selectedAges, setSelectedAges, selectedVenue, setSelectedVenue,
   showAddVenue, setShowAddVenue, newVenue, setNewVenue, setUserVenues,
   formData, setFormData, created, setCreated, activeNav, setActiveNav,
@@ -43,6 +97,7 @@ function MainApp({
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
   handleShare, topbarCopied,
 }) {
+  const isAuthed = !!session?.user?.id;
   if (enableAuth && !authReady) {
     return (
       <>
@@ -220,7 +275,7 @@ function MainApp({
         </div>
 
         {/* VIEW TOGGLE */}
-        {activeNav !== "dates" && (
+        {activeNav !== "dates" && activeNav !== "profile" && (
           <div className="view-toggle">
             <button className={`toggle-btn ${view==="list"?"active":""}`} onClick={() => setView("list")}>☰ List</button>
             <button className={`toggle-btn ${view==="map"?"active":""}`} onClick={() => { setView("map"); setActiveNav("search"); }}>🗺️ Map</button>
@@ -242,8 +297,36 @@ function MainApp({
           />
         )}
 
+        {activeNav === "profile" && (
+          <ProfileView
+            profile={profile}
+            kids={kids}
+            showLogout={enableAuth && isAuthed}
+            onEditProfile={() => {
+              setIsEditingProfile(true);
+              setActiveNav("profile");
+              setObStep(1);
+            }}
+            onEditKids={() => {
+              setIsEditingKids(true);
+              setActiveNav("profile");
+              setObStep(2);
+            }}
+            onLogout={async () => {
+              try {
+                localStorage.removeItem("ppd_beta_session");
+                localStorage.removeItem("ppd_show_preview");
+                await supabase.auth.signOut();
+              } catch (e) {
+                console.error("Failed to log out:", e);
+              }
+              window.location.reload();
+            }}
+          />
+        )}
+
         {/* ── MAP VIEW ── */}
-        {activeNav !== "dates" && view === "map" && (
+        {activeNav !== "dates" && activeNav !== "profile" && view === "map" && (
           <div style={{ paddingBottom: 100 }}>
             <div className="map-container">
               <svg viewBox="0 0 420 360" className="map-svg">
@@ -284,7 +367,7 @@ function MainApp({
                 <text x="135" y="62" textAnchor="middle" fontSize="8.5" fill="rgba(139,109,176,0.8)" fontWeight="600">Back Cove</text>
                 {/* Bayside — between Downtown, Back Cove & East End (the correct location) */}
                 <text x="228" y="168" textAnchor="middle" fontSize="8.5" fill="rgba(212,153,58,0.95)" fontWeight="600">Bayside</text>
-                {allDates.map(pd => {
+              {filtered.map(pd => {
                   const isActive = activePin === pd.id;
                   const color = pinColor(pd.hood);
                   return (
@@ -305,7 +388,7 @@ function MainApp({
                 <circle cx="205" cy="188" r="5" fill="white" stroke="#2A5F7A" strokeWidth="2"/>
                 <circle cx="205" cy="188" r="2.5" fill="#2A5F7A"/>
               </svg>
-              <div className="map-count-badge">📍 {allDates.length} playdates</div>
+              <div className="map-count-badge">📍 {filtered.length} playdates</div>
               {activePd && (
                 <div className="map-card-peek">
                   <div className="peek-card" onClick={() => setShowDetail(activePd)}>
@@ -354,7 +437,7 @@ function MainApp({
             <div style={{ padding:"20px 24px 0" }}>
               <div className="section-title" style={{ marginBottom:14 }}>All Playdates</div>
               <div style={{ display:"flex", flexDirection:"column", gap:10, paddingBottom:100 }}>
-                {allDates.map(pd => (
+                {filtered.map(pd => (
                   <div key={pd.id} style={{ display:"flex", alignItems:"center", gap:12, background:"white", borderRadius:16, padding:"12px 14px", border:`1.5px solid ${activePin===pd.id?pinColor(pd.hood):"var(--border)"}`, cursor:"pointer", transition:"border-color 0.15s" }}
                     onClick={() => { setActivePin(pd.id); window.scrollTo({top:0,behavior:"smooth"}); }}>
                     <div style={{ width:42, height:42, borderRadius:12, background:pd.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>{pd.emoji}</div>
@@ -371,11 +454,11 @@ function MainApp({
         )}
 
         {/* ── LIST VIEW ── */}
-        {activeNav !== "dates" && view === "list" && (
+        {activeNav !== "dates" && activeNav !== "profile" && view === "list" && (
           <>
             <div className="location-bar">
               <div className="location-pill" onClick={() => setShowTowns(true)}>
-                {townLabel} · {activeTowns.length > 1 ? "Greater Portland" : "5 mi radius"} ›
+                {townLabel} ›
               </div>
             </div>
             <div className="weather-banner">
@@ -395,9 +478,6 @@ function MainApp({
               <div className="section-title">Nearby Playdates</div>
               <button className="see-all" onClick={() => setView("map")}>🗺️ Map →</button>
             </div>
-            <div className="hood-row">
-              {HOODS.map(h => <button key={h} className={`hood-chip ${activeHood===h?"active":""}`} onClick={() => setActiveHood(h)}>{h}</button>)}
-            </div>
             <div className="cards">
               {filtered.map(pd => (
                 <div key={pd.id} className="card" onClick={() => setShowDetail(pd)}>
@@ -410,9 +490,13 @@ function MainApp({
                     <div className="card-tags">
                       <span className="tag tag-age">👶 {pd.ages}</span>
                       <span className="tag tag-venue">📍 {pd.venue}</span>
-                      {pd.hood && pd.hood!=="Portland" && <span className="tag tag-hood">{pd.hood}</span>}
                     </div>
                     <h3>{pd.title}</h3>
+                    {pd._isDb && (
+                      <div className="card-host-line">
+                        Hosted by {pd.hostName || "Host"}
+                      </div>
+                    )}
                     <div className="card-meta">🕐 {pd.date}</div>
                     <div className="card-footer">
                       <div className="attendees">
@@ -445,7 +529,7 @@ function MainApp({
                 <div style={{textAlign:"center",padding:"36px 0",color:"var(--muted)"}}>
                   <div style={{fontSize:38,marginBottom:10}}>🌲</div>
                   <div style={{fontFamily:"Fraunces,serif",fontSize:17,marginBottom:5}}>No playdates here yet</div>
-                  <div style={{fontSize:13}}>Be the first to host one in {activeHood}!</div>
+                  <div style={{fontSize:13}}>Be the first to host one in {selectedTownNames.length === 1 ? selectedTownNames[0] : "one of your selected areas"}!</div>
                 </div>
               )}
             </div>
@@ -467,10 +551,6 @@ function MainApp({
             <button key={n.id} className={`nav-item ${activeNav===n.id?"active":""}`}
               onClick={() => {
                 setActiveNav(n.id);
-                if (n.id === "profile") {
-                  setIsEditingProfile(true);
-                  setObStep(1);
-                }
                 if (n.id === "dates") setMyDatesTab("going");
               }}>
               <span className="nav-icon">{n.icon}</span><span className="nav-label">{n.label}</span>
@@ -535,6 +615,7 @@ export default function App() {
   const enableAuth = process.env.REACT_APP_ENABLE_AUTH === "true";
 
   const [session, setSession] = useState(null);
+  const isAuthed = !!session?.user?.id;
   const [authReady, setAuthReady] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -548,8 +629,6 @@ export default function App() {
   const [topbarCopied, setTopbarCopied] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isEditingKids, setIsEditingKids] = useState(false);
-  const isFirstRender = useRef(true);
-
   // App state
   const [view, setView] = useState("list");
   const [activeHood, setActiveHood] = useState("All");
@@ -568,11 +647,21 @@ export default function App() {
   const [created, setCreated] = useState([]);
   const [dbPlaydates, setDbPlaydates] = useState([]);
   const [dbRsvps, setDbRsvps] = useState([]);
+  const [dbVenues, setDbVenues] = useState([]);
   const [activeNav, setActiveNav] = useState("home");
   const [myDatesTab, setMyDatesTab] = useState("going");
   const [showToast, setShowToast] = useState(false);
 
-  const allVenues = [...PORTLAND_VENUES, ...userVenues];
+  const mappedDbVenues = dbVenues.map(v => ({
+    name: v.name,
+    addr: v.addr,
+    town: v.town,
+    hood: v.hood || "",
+    emoji: v.emoji || "📍",
+    pending: v.status === "pending",
+  }));
+
+  const allVenues = [...PORTLAND_VENUES, ...mappedDbVenues, ...userVenues];
   const mappedDbPlaydates = dbPlaydates.map(pd => {
     const rsvpsForDate = dbRsvps.filter(r => r.playdate_id === pd.id);
     const isJoined = session?.user?.id
@@ -580,9 +669,25 @@ export default function App() {
       : false;
 
     const pin = HOOD_PIN_DEFAULTS[pd.hood] || HOOD_PIN_DEFAULTS.default;
+    const hostAvatar =
+      pd.host
+        ? `${pd.host.avatar || "👤"}${pd.host.tone || ""}`
+        : "👤";
+
+    const rsvpAvatars = rsvpsForDate
+      .map(r => {
+        const p = r.profiles;
+        return p ? `${p.avatar || "👤"}${p.tone || ""}` : "👤";
+      });
+
+    const attendeeAvatars = [
+      hostAvatar,
+      ...rsvpAvatars.filter(a => a !== hostAvatar)
+    ].slice(0, 3);
 
     return {
       id: pd.id,
+      town: pd.town || "Portland",
       emoji: pd.emoji || "🌟",
       bg: "linear-gradient(135deg,#FDF0E8,#EDB99E)",
       title: pd.title,
@@ -590,16 +695,15 @@ export default function App() {
       addr: pd.addr || "",
       hood: pd.hood || pd.town || "Portland",
       ages: pd.ages || "All ages",
-      date: [pd.date, pd.time].filter(Boolean).join(" · "),
+      date: formatPlaydateTime(pd.date, pd.time),
+      dateStr: pd.date,
+      timeStr: pd.time,
       weather: "📍 Real playdate",
-      attendees: rsvpsForDate
-        .map(r => {
-          const p = r.profiles;
-          return p ? `${p.avatar || "👤"}${p.tone || ""}` : "👤";
-        })
-        .slice(0, 3),
+      attendees: attendeeAvatars,
       count: rsvpsForDate.length,
       host: profile.name || "Host",
+      hostName: pd.host?.name || "Host",
+      hostAvatar: hostAvatar,
       description: pd.description || "",
       x: pin.x,
       y: pin.y,
@@ -610,21 +714,45 @@ export default function App() {
     };
   });
 
+  const townNameToId = {
+    portland: "portland",
+    ...Object.fromEntries(
+      TOWNS_NEARBY.map(t => [t.name.toLowerCase().trim(), t.id])
+    ),
+  };
+
+  const normalizeTownId = town => {
+    if (!town) return "portland";
+    const value = String(town).toLowerCase().trim();
+    return townNameToId[value] || value;
+  };
+
   const allDates =
     mappedDbPlaydates.length > 0
       ? [...mappedDbPlaydates, ...created]
       : [...mappedDbPlaydates, ...created, ...PLAYDATES];
-  const filtered = activeHood === "All" ? allDates : allDates.filter(p => p.hood === activeHood);
-  const activePd = activePin != null ? allDates.find(p => p.id === activePin) : null;
+  const filtered = allDates.filter(pd => {
+    const townId = normalizeTownId(pd.town);
+    return activeTowns.includes(townId);
+  });
+
+  const activePd = activePin != null ? filtered.find(p => p.id === activePin) : null;
   const isPreviewingApp = obStep === 4;
   const goingDates = allDates.filter(pd => joined[pd.id] === true || pd._joined);
   const hostingDates = allDates.filter(pd => pd._hostId === session?.user?.id || created.some(c => c.id === pd.id));
 
   const toggleTown = id => setActiveTowns(t => t.includes(id) ? (t.length > 1 ? t.filter(x=>x!==id) : t) : [...t, id]);
 
-  const townLabel = activeTowns.length === 1 && activeTowns[0] === "portland"
-    ? `📍 ${profile.town || "Portland, ME"}${profile.hood ? ` (${profile.hood})` : ""}`
-    : `📍 ${activeTowns.length} areas selected`;
+  const selectedTownNames = activeTowns.map(id => {
+    if (id === "portland") return "Portland";
+    const match = TOWNS_NEARBY.find(t => t.id === id);
+    return match ? match.name : id;
+  });
+
+  const townLabel =
+    activeTowns.length === 1
+      ? `📍 ${selectedTownNames[0]}`
+      : `📍 ${activeTowns.length} areas selected`;
 
   const handleShare = async () => {
     const shareData = {
@@ -721,8 +849,52 @@ export default function App() {
 
   const saveNewVenue = () => {
     if (newVenue.name && newVenue.addr && newVenue.type) {
+      if (session?.user?.id) {
+        (async () => {
+          try {
+            const vt = VENUE_TYPES.find(v => v.type === newVenue.type);
+
+            const venueTown = newVenue.town || profile.town || "Portland";
+            const venuePayload = {
+              ...newVenue,
+              town: venueTown,
+              hood: venueTown === "Portland" ? (newVenue.hood || profile.hood || "") : "",
+              emoji: vt?.icon || "📍",
+            };
+
+            const savedVenue = await createVenueSubmission(session.user.id, venuePayload);
+            setDbVenues(v => [savedVenue, ...v]);
+
+            setSelectedVenue(savedVenue.name);
+            setNewVenue({ name:"", addr:"", type:"", perks:[] });
+            setShowAddVenue(false);
+
+            try {
+              await fetch("/api/venue-submission-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: savedVenue.name,
+                  addr: savedVenue.addr,
+                  town: savedVenue.town,
+                  hood: savedVenue.hood,
+                  submittedBy: session.user.email,
+                }),
+              });
+            } catch (e) {
+              console.error("Venue email notification failed:", e);
+            }
+          } catch (e) {
+            console.error("Failed to submit venue:", e);
+          }
+        })();
+        return;
+      }
+
       const vt = VENUE_TYPES.find(v => v.type === newVenue.type);
-      setUserVenues(v => [...v, { ...newVenue, emoji: vt?.icon || "📍", pending: true, town:"Greater Portland" }]);
+      const venueTown = newVenue.town || profile.town || "Portland";
+      const venueHood = venueTown === "Portland" ? (newVenue.hood || profile.hood || "") : "";
+      setUserVenues(v => [...v, { ...newVenue, emoji: vt?.icon || "📍", pending: true, town: venueTown, hood: venueHood }]);
       setSelectedVenue(newVenue.name);
       setNewVenue({ name:"", addr:"", type:"", perks:[] });
       setShowAddVenue(false);
@@ -750,6 +922,25 @@ export default function App() {
       });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!enableAuth) {
+      console.warn("Auth is disabled. App is running in preview/local-only mode.");
+    }
+  }, [enableAuth]);
+
+  useEffect(() => {
+    if (!authReady || !session?.user?.id) return;
+
+    (async () => {
+      try {
+        const venues = await fetchVenues(session.user.id);
+        setDbVenues(venues);
+      } catch (e) {
+        console.error("Failed to load venues:", e);
+      }
+    })();
+  }, [authReady, session]);
 
   useEffect(() => {
     if (!authReady) {
@@ -843,12 +1034,12 @@ export default function App() {
   }, [dbRsvps, session]);
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    if (obStep === 4) {
+    if (obStep !== 4) return;
+
+    const hasSeenPreviewModal = sessionStorage.getItem("ppd_seen_preview_modal") === "true";
+    if (!hasSeenPreviewModal) {
       setShowPreviewModal(true);
+      sessionStorage.setItem("ppd_seen_preview_modal", "true");
     }
   }, [obStep]);
 
@@ -898,8 +1089,13 @@ export default function App() {
       return;
     }
     const v = allVenues.find(v => v.name === selectedVenue);
-    const hoodName = v?.hood || profile.town || profile.hood || "Portland";
-    const pin = HOOD_PIN_DEFAULTS[hoodName] || HOOD_PIN_DEFAULTS.default;
+    const venueTown = v?.town || profile.town || "Portland";
+    const venueHood =
+      venueTown === "Portland"
+        ? (v?.hood || profile.hood || "")
+        : "";
+    const hoodNameForPin = venueHood || venueTown || "Portland";
+    const pin = HOOD_PIN_DEFAULTS[hoodNameForPin] || HOOD_PIN_DEFAULTS.default;
 
     if (session?.user?.id) {
       let newPlaydate;
@@ -908,8 +1104,8 @@ export default function App() {
           title: formData.title,
           venue: v?.name || selectedVenue,
           addr: v?.addr || "",
-          town: profile.town || "Portland",
-          hood: v?.hood || profile.hood || profile.town || "Portland",
+          town: venueTown,
+          hood: venueHood,
           date: formData.date,
           time: formData.time,
           ages: formatAgeRange(selectedAges),
@@ -949,14 +1145,15 @@ export default function App() {
     setCreated(p => [
       {
         id: Date.now(),
+        town: venueTown,
         emoji: v?.emoji || "🌟",
         bg: "linear-gradient(135deg,#FDF0E8,#EDB99E)",
         title: formData.title,
         venue: v?.name || selectedVenue,
         addr: v?.addr || "",
-        hood: hoodName,
+        hood: venueHood || "",
         ages: formatAgeRange(selectedAges),
-        date: `${formData.date} · ${formData.time}`,
+        date: formatPlaydateTime(formData.date, formData.time),
         weather: "📍 Your event",
         attendees: ["🧡"],
         count: 1,
@@ -1016,6 +1213,7 @@ export default function App() {
         activeTowns={activeTowns}
         toggleTown={toggleTown}
         townLabel={townLabel}
+        selectedTownNames={selectedTownNames}
         joined={joined}
         setJoined={setJoined}
         selectedAges={selectedAges}

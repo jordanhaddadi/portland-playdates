@@ -573,7 +573,30 @@ export const styles = `
   .hood-chip.active { background: var(--ocean); color: white; border-color: var(--ocean); }
 
   /* TOWNS MODAL */
-  .towns-modal { width: 100%; max-width: 420px; background: var(--warm-white); border-radius: 28px 28px 0 0; padding: 12px 24px 48px; animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); max-height: 82vh; overflow-y: auto; }
+  .towns-modal { width: 100%; max-width: 420px; background: var(--warm-white); border-radius: 28px 28px 0 0; padding: 12px 24px 48px; animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); max-height: 88vh; overflow-y: auto; display: flex; flex-direction: column; }
+  .towns-modal-scroll {
+    overflow-y: auto;
+    padding-bottom: 8px;
+  }
+  .towns-modal-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--cream);
+    padding-top: 14px;
+    margin-top: 10px;
+  }
+  .towns-modal-summary {
+    padding: 14px 16px;
+    background: var(--ocean-pale);
+    border-radius: 14px;
+    font-size: 13px;
+    color: var(--ocean);
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+  .towns-modal-save {
+    margin-top: 0;
+  }
   .towns-section-label { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin: 16px 0 10px; }
   .towns-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
   .town-btn { padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--border); background: white; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--charcoal); cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: all 0.15s; }
@@ -611,11 +634,17 @@ export const styles = `
   .tag-venue { background: var(--ocean-pale); color: var(--ocean); }
   .tag-hood { background: #EEF4EF; color: var(--sage); }
   .card h3 { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 500; color: var(--charcoal); margin-bottom: 4px; line-height: 1.3; }
+  .card-host-line {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
   .card-meta { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
   .card-footer { display: flex; align-items: center; justify-content: space-between; }
   .attendees { display: flex; align-items: center; gap: 8px; }
   .avatar-stack { display: flex; }
-  .avatar-sm { width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; margin-left: -5px; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+  .avatar-sm { width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; margin-left: -8px; font-size: 11px; display: flex; align-items: center; justify-content: center; }
   .avatar-sm:first-child { margin-left: 0; }
   .attendee-text { font-size: 12px; color: var(--muted); }
   .join-btn { background: var(--terracotta); color: white; border: none; border-radius: 100px; padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }

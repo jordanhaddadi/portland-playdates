@@ -138,7 +138,15 @@ export async function createPlaydate(userId, form) {
 export async function fetchPlaydates() {
   const res = await supabase
     .from("playdates")
-    .select("*")
+    .select(`
+      *,
+      host:host_id (
+        id,
+        name,
+        avatar,
+        tone
+      )
+    `)
     .order("created_at", { ascending: false });
 
   if (res.error) {
@@ -192,6 +200,39 @@ export async function leavePlaydate(playdateId, userId) {
     throw res.error;
   }
 
+  return res.data;
+}
+
+export async function fetchVenues(userId) {
+  const res = await supabase
+    .from("venues")
+    .select("*")
+    .or(`status.eq.approved,and(status.eq.pending,submitted_by.eq.${userId})`)
+    .order("created_at", { ascending: false });
+
+  if (res.error) throw res.error;
+  return res.data || [];
+}
+
+export async function createVenueSubmission(userId, venue) {
+  const venueTown = venue?.town || "Portland";
+  const payload = {
+    name: venue?.name || "",
+    addr: venue?.addr || "",
+    town: venueTown,
+    hood: venueTown === "Portland" ? (venue?.hood || "") : "",
+    emoji: venue?.emoji || "📍",
+    submitted_by: userId,
+    status: "pending",
+  };
+
+  const res = await supabase
+    .from("venues")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (res.error) throw res.error;
   return res.data;
 }
 

@@ -1,4 +1,4 @@
-import { FONT, styles } from '../styles/index';
+import { FONT, styles } from '../../styles/index';
 
 export function SuccessPage() {
   return (
@@ -38,3 +38,4 @@ export function SuccessPage() {
     </>
   );
 }
+
