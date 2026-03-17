@@ -6,6 +6,9 @@ export const getDefaultProfile = () => ({
   avatar: "",
   town: "",
   tone: "",
+  role: "",
+  goals: "",
+  referral_source: "",
 });
 
 export const getDefaultSession = () => ({
@@ -72,6 +75,9 @@ export async function upsertProfile(userId, profile) {
     avatar: profile?.avatar || "",
     tone: profile?.tone || "",
     bio: profile?.bio || "",
+    role: profile?.role || "",
+    goals: profile?.goals || "",
+    referral_source: profile?.referral_source || "",
   };
 
   const res = await supabase
@@ -140,11 +146,19 @@ export async function fetchPlaydates() {
     .from("playdates")
     .select(`
       *,
-      host:host_id (
-        id,
+      host:profiles!playdates_host_id_fkey(
         name,
         avatar,
         tone
+      ),
+      rsvps(
+        id,
+        profile_id,
+        profiles(
+          name,
+          avatar,
+          tone
+        )
       )
     `)
     .order("created_at", { ascending: false });

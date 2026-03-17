@@ -8,6 +8,7 @@ import { WelcomeScreen } from './components/onboarding/WelcomeScreen';
 import { AboutYouScreen } from './components/onboarding/AboutYouScreen';
 import { YourKidsScreen } from './components/onboarding/YourKidsScreen';
 import { WaitlistScreen } from './components/onboarding/WaitlistScreen';
+import { AboutCaregiverScreen } from "./components/onboarding/AboutCaregiverScreen";
 import { AuthScreen } from "./components/onboarding/AuthScreen";
 import { MyDatesView } from './components/views/MyDatesView';
 import { ProfileView } from "./components/views/ProfileView";
@@ -96,6 +97,7 @@ function MainApp({
   allVenues, allDates, filtered, activePd, goingDates, hostingDates,
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
   handleShare, topbarCopied,
+  handleRestart,
 }) {
   const isAuthed = !!session?.user?.id;
   if (enableAuth && !authReady) {
@@ -178,8 +180,32 @@ function MainApp({
         isEditingKids={isEditingKids}
         onSaveKids={handleSaveKids}
       /></>;
-  if (obStep === 3) return <><style dangerouslySetInnerHTML={{ __html: FONT }} />
-      <style dangerouslySetInnerHTML={{ __html: styles }} /><WaitlistScreen profile={profile} onPreview={() => setObStep(4)} onFormSubmitted={() => setShowTallySuccess(true)} showTallySuccess={showTallySuccess} /></>;
+  if (obStep === 3) return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: FONT }} />
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      <AboutCaregiverScreen
+        onDone={async () => {
+          try {
+            if (session?.user?.id) {
+              await upsertProfile(session.user.id, profile);
+              await replaceKids(session.user.id, kids);
+            }
+            localStorage.setItem(
+              "ppd_beta_session",
+              JSON.stringify({ obStep: 4, profile, kids })
+            );
+          } catch (e) {
+            console.error("Failed to save profile on onboarding complete:", e);
+          }
+          setObStep(4);
+        }}
+        onBack={() => setObStep(profile?.name ? 4 : 2)}
+        profile={profile}
+        setProfile={setProfile}
+      />
+    </>
+  );
 
   // ── MAIN APP ──
   return (
@@ -215,14 +241,7 @@ function MainApp({
                       cursor:"pointer",
                       fontFamily:"DM Sans, sans-serif",
                     }}
-                    onClick={() => {
-                      localStorage.removeItem("ppd_beta_session");
-                      localStorage.removeItem("ppd_show_preview");
-                      setObStep(0);
-                      setProfile(getDefaultProfile());
-                      setKids([]);
-                      setShowPreviewModal(false);
-                    }}
+                    onClick={handleRestart}
                   >
                     Restart
                   </button>
@@ -257,22 +276,24 @@ function MainApp({
           </div>
         </div>
 
-        {/* PERSONALIZED GREETING */}
-        <div className="greeting-bar">
-          <div className="greeting-avatar">{profile.avatar + (profile.tone || "") || "👩"}</div>
-          <div className="greeting-text">
-            <div className="greeting-name">Hey, {profile.name || "there"}! 👋</div>
-            <div className="greeting-kids">
-              {kids.length > 0
-                ? kids.map(k => `${k.emoji} ${k.name} (${k.age})`).join(" · ")
-                : `${profile.town || "Portland"}${profile.hood ? ` (${profile.hood})` : ""} · Tap to add kids`}
+        {/* PERSONALIZED GREETING (HOME FEED ONLY) */}
+        {activeNav === "home" && view === "list" && (
+          <div className="greeting-bar">
+            <div className="greeting-avatar">{profile.avatar + (profile.tone || "") || "👩"}</div>
+            <div className="greeting-text">
+              <div className="greeting-name">Hey, {profile.name || "there"}! 👋</div>
+              <div className="greeting-kids">
+                {kids.length > 0
+                  ? kids.map(k => `${k.emoji} ${k.name} (${k.age})`).join(" · ")
+                  : `${profile.town || "Portland"}${profile.hood ? ` (${profile.hood})` : ""} · Tap to add kids`}
+              </div>
             </div>
+            <button className="greeting-edit" onClick={() => {
+              setIsEditingProfile(true);
+              setObStep(1);
+            }}>Edit</button>
           </div>
-          <button className="greeting-edit" onClick={() => {
-            setIsEditingProfile(true);
-            setObStep(1);
-          }}>Edit</button>
-        </div>
+        )}
 
         {/* VIEW TOGGLE */}
         {activeNav !== "dates" && activeNav !== "profile" && (
@@ -301,6 +322,10 @@ function MainApp({
           <ProfileView
             profile={profile}
             kids={kids}
+            session={session}
+            setProfile={setProfile}
+            hostedCount={hostingDates.length}
+            joinedCount={goingDates.length}
             showLogout={enableAuth && isAuthed}
             onEditProfile={() => {
               setIsEditingProfile(true);
@@ -312,6 +337,7 @@ function MainApp({
               setActiveNav("profile");
               setObStep(2);
             }}
+            onEditCaregiver={() => setObStep(3)}
             onLogout={async () => {
               try {
                 localStorage.removeItem("ppd_beta_session");
@@ -621,7 +647,7 @@ export default function App() {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   // Onboarding state
-  const [obStep, setObStep] = useState(() => loadSession().obStep); // 0=welcome, 1=about, 2=kids, 3=waitlist, 4=app
+  const [obStep, setObStep] = useState(() => loadSession().obStep); // 0=welcome, 1=about, 2=kids, 3=caregiver, 4=app, 5=waitlist (not in active flow)
   const [profile, setProfile] = useState(() => loadSession().profile);
   const [kids, setKids] = useState(() => loadSession().kids);
   const [showTallySuccess, setShowTallySuccess] = useState(false);
@@ -702,7 +728,10 @@ export default function App() {
       attendees: attendeeAvatars,
       count: rsvpsForDate.length,
       host: profile.name || "Host",
-      hostName: pd.host?.name || "Host",
+      hostName:
+        pd.host?.name ||
+        (pd.host_id === session?.user?.id ? profile.name : null) ||
+        "Someone",
       hostAvatar: hostAvatar,
       description: pd.description || "",
       x: pin.x,
@@ -773,6 +802,28 @@ export default function App() {
       setTopbarCopied(true);
       setTimeout(() => setTopbarCopied(false), 2000);
     }
+  };
+
+  const handleRestart = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error("Failed to sign out:", e);
+    }
+
+    localStorage.removeItem("ppd_beta_session");
+    localStorage.removeItem("ppd_preview_seen");
+    localStorage.removeItem("ppd_show_preview");
+    sessionStorage.removeItem("ppd_seen_preview_modal");
+
+    setSession(null);
+    setProfile(getDefaultProfile());
+    setKids([]);
+    setHasProfile(false);
+    setShowPreviewModal(false);
+    setLoadingProfile(false);
+
+    setObStep(enableAuth ? 0 : 0);
   };
 
   const handleSaveProfile = async () => {
@@ -967,7 +1018,10 @@ export default function App() {
             hood: remoteProfile.hood || "",
             avatar: remoteProfile.avatar || "",
             tone: remoteProfile.tone || "",
-            bio: remoteProfile.bio || p.bio || "",
+            bio: remoteProfile.bio || "",
+            role: remoteProfile.role || "",
+            goals: remoteProfile.goals || "",
+            referral_source: remoteProfile.referral_source || "",
           }));
           setKids((remoteKids || []).map(k => ({
             name: k.name,
@@ -975,8 +1029,10 @@ export default function App() {
             emoji: k.emoji,
           })));
           setHasProfile(true);
+          setObStep(4);
         } else {
           setHasProfile(false);
+          setObStep(0);
         }
       } catch (e) {
         console.error("Supabase profile load failed", e);
@@ -994,7 +1050,7 @@ export default function App() {
   useEffect(() => {
     if (!session) return;
     if (hasProfile) return;
-    if (obStep !== 3) return;
+    if (obStep !== 5) return;
 
     (async () => {
       try {
@@ -1247,6 +1303,7 @@ export default function App() {
         saveNewVenue={saveNewVenue}
         handleShare={handleShare}
         topbarCopied={topbarCopied}
+        handleRestart={handleRestart}
       />} />
     </Routes>
   );

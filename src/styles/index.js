@@ -199,6 +199,28 @@ export const styles = `
     padding: 6px 12px;
     font-size: 12px;
   }
+  .caregiver-notice {
+    background: var(--ocean-pale);
+    border: 1.5px solid var(--ocean-light);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--ocean);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .caregiver-role-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .caregiver-goals-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
   .tone-picker-wrap {
     margin-top: 16px;
     animation: obFadeIn 0.2s ease;
@@ -689,6 +711,202 @@ export const styles = `
   .rsvp-btn { width: 100%; background: var(--terracotta); color: white; border: none; border-radius: 16px; padding: 16px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 20px; transition: background 0.15s; }
   .rsvp-btn:hover { background: #B04830; }
   .rsvp-btn.going { background: var(--sage); }
+
+  /* ── PROFILE VIEW ── */
+  .profile-page {
+    background: var(--cream);
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 32px 24px 140px;
+  }
+  .profile-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+  }
+  .profile-avatar-large {
+    font-size: 72px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .profile-name-large {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin: 0 0 4px;
+    text-align: center;
+  }
+  .profile-meta {
+    font-size: 14px;
+    color: var(--muted);
+    margin: 0;
+    text-align: center;
+  }
+  .profile-stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+  }
+  .profile-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .profile-stat-number {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--charcoal);
+  }
+  .profile-stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .profile-bio-card {
+    background: transparent;
+    padding: 0;
+    font-size: 14px;
+    color: var(--charcoal);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+  }
+  .profile-bio-empty {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+  }
+  .profile-bio-empty-link {
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+  }
+  .profile-bio-empty-link:hover {
+    color: var(--ocean);
+    text-decoration: underline;
+  }
+  .bio-edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .bio-save-btn {
+    background: var(--terracotta);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .bio-cancel-btn {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .bio-edit-trigger {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    font-style: italic;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .bio-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .bio-edit-link {
+    font-size: 12px;
+    color: var(--ocean);
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .profile-section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .profile-kids-list {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+  }
+  .profile-kid-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: var(--charcoal);
+    padding: 6px 0;
+  }
+  .profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .profile-btn {
+    width: 100%;
+    border: none;
+    border-radius: 100px;
+    padding: 14px 16px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .profile-btn-primary {
+    background: var(--terracotta);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .profile-btn-secondary {
+    background: #EAF2F6;
+    color: var(--ocean);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .profile-btn-logout {
+    background: transparent;
+    border: 1.5px solid #ddd;
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 8px;
+  }
   /* ── BETA BADGE ── */
   .beta-badge { background: var(--terracotta); color: white; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; vertical-align: middle; margin-left: 6px; letter-spacing: 0.5px; font-family: 'DM Sans', sans-serif; }
   .beta-badge-onboarding { background: rgba(196,88,58,0.2); color: var(--terracotta-light); }

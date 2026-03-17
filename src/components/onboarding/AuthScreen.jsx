@@ -159,8 +159,8 @@ export function AuthScreen({ onSuccess }) {
           </h1>
 
           <p className="auth-sub">
-            Join the beta to preview the app, save your profile,
-            and get matched with local families.
+            Enter your email to sign in or create your account.
+            New here? We will walk you through setup.
           </p>
 
           <div className="auth-field">
