@@ -104,7 +104,8 @@ export function AuthScreen({ onSuccess }) {
                 pattern="[0-9]*"
                 placeholder="000000"
                 value={otp}
-                onChange={e => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                maxLength={8}
+                onChange={e => setOtp(e.target.value.replace(/\D/g, "").slice(0, 8))}
               />
             </div>
 
