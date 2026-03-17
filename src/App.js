@@ -587,10 +587,8 @@ export default function App() {
   const handleSaveProfile = async () => {
     setProfile(p => ({ ...p }));
     try {
-      console.log("Saving profile to Supabase:", session?.user?.id, profile);
       if (session?.user?.id) {
         await upsertProfile(session.user.id, profile);
-        console.log("Profile saved successfully");
       }
 
       localStorage.setItem(
@@ -612,10 +610,8 @@ export default function App() {
 
   const handleSaveKids = async () => {
     try {
-      console.log("Saving kids to Supabase:", session?.user?.id, kids);
       if (session?.user?.id) {
         await replaceKids(session.user.id, kids);
-        console.log("Kids saved successfully");
       }
 
       localStorage.setItem(
