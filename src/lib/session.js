@@ -171,13 +171,10 @@ export async function fetchRsvps() {
 export async function joinPlaydate(playdateId, userId) {
   const res = await supabase
     .from("rsvps")
-    .upsert(
-      {
-        playdate_id: playdateId,
-        profile_id: userId,
-      },
-      { onConflict: "playdate_id,profile_id" }
-    )
+    .insert({
+      playdate_id: playdateId,
+      profile_id: userId,
+    })
     .select("*");
 
   if (res.error) throw res.error;

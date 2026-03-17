@@ -316,17 +316,20 @@ function MainApp({
                         <div className="peek-meta">🕐 {activePd.date} · {activePd.count} going</div>
                       </div>
                       <button
-                        className={`peek-join ${(activePd._isDb ? activePd._joined : joined[activePd.id]) ? "joined" : ""}`}
+                        className={`peek-join ${((activePd._isDb && activePd._hostId === session?.user?.id) || (activePd._isDb ? activePd._joined : joined[activePd.id])) ? "joined" : ""}`}
                         onClick={e => {
                           e.stopPropagation();
                           if (activePd._isDb) {
+                            if (activePd._hostId === session?.user?.id) return;
                             handleToggleJoin(activePd.id);
                           } else {
                             setJoined(j => ({...j,[activePd.id]:!j[activePd.id]}));
                           }
                         }}
                       >
-                        {(activePd._isDb ? activePd._joined : joined[activePd.id]) ? "✓" : "Join"}
+                        {(activePd._isDb && activePd._hostId === session?.user?.id)
+                          ? "Hosting"
+                          : ((activePd._isDb ? activePd._joined : joined[activePd.id]) ? "✓" : "Join")}
                       </button>
                     </div>
                   </div>
@@ -419,17 +422,20 @@ function MainApp({
                         <span className="attendee-text">{pd.count} going</span>
                       </div>
                       <button
-                        className={`join-btn ${(pd._isDb ? pd._joined : joined[pd.id]) ? "joined" : ""}`}
+                        className={`join-btn ${((pd._isDb && pd._hostId === session?.user?.id) || (pd._isDb ? pd._joined : joined[pd.id])) ? "joined" : ""}`}
                         onClick={e => {
                           e.stopPropagation();
                           if (pd._isDb) {
+                            if (pd._hostId === session?.user?.id) return;
                             handleToggleJoin(pd.id);
                           } else {
                             setJoined(j => ({ ...j, [pd.id]: !j[pd.id] }));
                           }
                         }}
                       >
-                        {(pd._isDb ? pd._joined : joined[pd.id]) ? "✓ Going!" : "Join"}
+                        {(pd._isDb && pd._hostId === session?.user?.id)
+                          ? "Hosting"
+                          : ((pd._isDb ? pd._joined : joined[pd.id]) ? "✓ Going!" : "Join")}
                       </button>
                     </div>
                   </div>
@@ -864,6 +870,29 @@ export default function App() {
     submitHelper = "Choose a venue to continue";
   }
 
+  const formatAgeRange = (ages) => {
+    if (!ages || ages.length === 0) return "All ages";
+    if (ages.length === 1) return ages[0];
+
+    const parsed = ages
+      .map(label => {
+        const match = label.match(/(\d+)\D+(\d+)/);
+        if (!match) return null;
+        return {
+          min: Number(match[1]),
+          max: Number(match[2]),
+        };
+      })
+      .filter(Boolean);
+
+    if (parsed.length === 0) return ages.join(", ");
+
+    const min = Math.min(...parsed.map(a => a.min));
+    const max = Math.max(...parsed.map(a => a.max));
+
+    return `${min}–${max}`;
+  };
+
   const handleCreate = async () => {
     if (!formData.title || !selectedVenue) {
       return;
@@ -873,8 +902,9 @@ export default function App() {
     const pin = HOOD_PIN_DEFAULTS[hoodName] || HOOD_PIN_DEFAULTS.default;
 
     if (session?.user?.id) {
+      let newPlaydate;
       try {
-        await createPlaydate(session.user.id, {
+        newPlaydate = await createPlaydate(session.user.id, {
           title: formData.title,
           venue: v?.name || selectedVenue,
           addr: v?.addr || "",
@@ -882,17 +912,28 @@ export default function App() {
           hood: v?.hood || profile.hood || profile.town || "Portland",
           date: formData.date,
           time: formData.time,
-          ages: selectedAges.join(", ") || "All ages",
+          ages: formatAgeRange(selectedAges),
           description: "New playdate!",
           emoji: v?.emoji || "🌟",
           max_kids: null
         });
+      } catch (e) {
+        console.error("Failed to create playdate:", e);
+        return;
+      }
 
+      try {
+        await joinPlaydate(newPlaydate.id, session.user.id);
+      } catch (e) {
+        console.error("Failed to auto-RSVP host:", e);
+      }
+
+      try {
         const [pds, rsvps] = await Promise.all([fetchPlaydates(), fetchRsvps()]);
         setDbPlaydates(pds);
         setDbRsvps(rsvps);
       } catch (e) {
-        console.error("Failed to create playdate:", e);
+        console.error("Failed to refresh playdates after create:", e);
       }
 
       setShowCreate(false);
@@ -914,7 +955,7 @@ export default function App() {
         venue: v?.name || selectedVenue,
         addr: v?.addr || "",
         hood: hoodName,
-        ages: selectedAges.join(", ") || "All ages",
+        ages: formatAgeRange(selectedAges),
         date: `${formData.date} · ${formData.time}`,
         weather: "📍 Your event",
         attendees: ["🧡"],
