@@ -231,7 +231,7 @@ function MainApp({
               >
                 {topbarCopied ? "Copied!" : "Share"}
               </button>
-              {enableAuth && (
+              {enableAuth && process.env.NODE_ENV === "development" && (
                 <>
                   <button
                     style={{
@@ -274,7 +274,11 @@ function MainApp({
                   </button>
                 </>
               )}
-              <button className="user-avatar-btn" title="Profile">
+              <button
+                className="user-avatar-btn"
+                title="Profile"
+                onClick={() => setActiveNav("profile")}
+              >
                 {profile.avatar_url ? (
                   <img
                     src={profile.avatar_url}
