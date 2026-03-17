@@ -30,7 +30,10 @@ export function AuthScreen({ onSuccess }) {
     setError("");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true }
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: undefined,
+      }
     });
     if (error) {
       setError(getFriendlyError(error.message));
@@ -46,7 +49,10 @@ export function AuthScreen({ onSuccess }) {
     setError("");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true }
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: undefined,
+      }
     });
     if (error) {
       setError(getFriendlyError(error.message));
