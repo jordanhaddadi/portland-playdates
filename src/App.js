@@ -24,7 +24,7 @@ function formatPlaydateDate(dateStr) {
   if (!dateStr) return "";
 
   const today = new Date();
-  const target = new Date(dateStr);
+  const target = new Date(`${dateStr}T12:00:00`);
 
   const todayMidnight = new Date(
     today.getFullYear(),
@@ -61,7 +61,7 @@ function formatPlaydateDate(dateStr) {
 function formatPlaydateTime(dateStr, timeStr) {
   if (!dateStr || !timeStr) return "";
 
-  const d = new Date(`${dateStr}T${timeStr}`);
+  const d = new Date(`${dateStr}T${timeStr}:00`);
 
   const datePart = formatPlaydateDate(dateStr);
 
