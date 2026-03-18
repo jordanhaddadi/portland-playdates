@@ -480,6 +480,21 @@ export const styles = `
     font-family: 'DM Sans', sans-serif;
   }
 
+  .auth-consent {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.5;
+    margin: 8px 0 0;
+    padding: 0 8px;
+  }
+
+  .auth-consent-link {
+    color: var(--ocean);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
   .auth-pillars {
     display: flex;
     flex-wrap: wrap;

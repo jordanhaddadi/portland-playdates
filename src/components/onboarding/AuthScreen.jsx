@@ -191,6 +191,20 @@ export function AuthScreen({ onSuccess }) {
             {loading ? "Sending..." : "Send login code"}
           </button>
 
+          <p className="auth-consent">
+            By continuing you agree to our{" "}
+            <a
+              href="https://www.portlandplaydates.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="auth-consent-link"
+            >
+              privacy policy
+            </a>
+            {" "}and consent to receive emails about playdates and community
+            updates. You can unsubscribe at any time.
+          </p>
+
           <div className="auth-helper">
             No password needed. We will email you an 8 digit code.
           </div>

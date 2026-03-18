@@ -13,6 +13,7 @@ import { AuthScreen } from "./components/onboarding/AuthScreen";
 import { MyDatesView } from './components/views/MyDatesView';
 import { ProfileView } from "./components/views/ProfileView";
 import { SuccessPage } from './components/views/SuccessPage';
+import { PrivacyPage } from './components/views/PrivacyPage';
 import { CreateModal } from './components/modals/CreateModal';
 import { DetailModal } from './components/modals/DetailModal';
 import { TownsModal } from './components/modals/TownsModal';
@@ -1376,6 +1377,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/success" element={<SuccessPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="*" element={<MainApp
         session={session}
         enableAuth={enableAuth}
