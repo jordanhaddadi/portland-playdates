@@ -191,6 +191,10 @@ export function AuthScreen({ onSuccess }) {
             {loading ? "Sending..." : "Send login code"}
           </button>
 
+          <div className="auth-helper">
+            No password needed. We will email you an 8 digit code.
+          </div>
+
           <p className="auth-consent">
             By continuing you agree to our{" "}
             <a
@@ -204,10 +208,6 @@ export function AuthScreen({ onSuccess }) {
             {" "}and consent to receive emails about playdates and community
             updates. You can unsubscribe at any time.
           </p>
-
-          <div className="auth-helper">
-            No password needed. We will email you an 8 digit code.
-          </div>
 
           {error && <div className="ob-error">{error}</div>}
 
