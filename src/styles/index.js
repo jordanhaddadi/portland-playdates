@@ -579,6 +579,66 @@ export const styles = `
 
   .location-bar { padding: 0 24px 16px; }
   .location-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--ocean-pale); border: 1.5px solid var(--ocean-light); border-radius: 100px; padding: 6px 14px; font-size: 13px; font-weight: 500; color: var(--ocean); cursor: pointer; }
+  .featured-venues-section {
+    padding: 0 16px 4px;
+  }
+  .featured-venues-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 10px;
+  }
+  .featured-venues-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+  }
+  .featured-venues-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .featured-venue-card {
+    flex-shrink: 0;
+    background: white;
+    border-radius: 16px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 120px;
+    text-align: center;
+  }
+  .featured-venue-emoji {
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .featured-venue-name {
+    font-family: 'Fraunces', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+  .featured-venue-town {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .featured-venue-cta {
+    margin-top: 6px;
+    background: var(--ocean);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
   .weather-banner { margin: 0 24px 18px; background: var(--ocean-pale); border: 1.5px solid var(--ocean-light); border-radius: 16px; padding: 11px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ocean); }
   .hero { margin: 0 24px 24px; background: var(--charcoal); border-radius: 24px; padding: 24px 28px 22px; position: relative; overflow: hidden; }
   .hero-wave { position: absolute; bottom: 0; right: 0; width: 180px; height: 100px; background: radial-gradient(ellipse at bottom right, var(--ocean) 0%, transparent 65%); opacity: 0.4; }
@@ -649,6 +709,19 @@ export const styles = `
   .card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(30,43,47,0.1); }
   .card-img { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 42px; position: relative; }
   .card-weather { position: absolute; top: 10px; right: 12px; background: rgba(255,255,255,0.9); border-radius: 100px; padding: 3px 10px; font-size: 11px; font-weight: 500; }
+  .card-partner-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: white;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ocean);
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
   .card-body { padding: 14px 17px 16px; }
   .card-tags { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
   .tag { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px; }

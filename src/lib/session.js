@@ -256,7 +256,9 @@ export async function fetchVenues(userId) {
   const res = await supabase
     .from("venues")
     .select("*")
-    .or(`status.eq.approved,and(status.eq.pending,submitted_by.eq.${userId})`)
+    .or(
+      `status.eq.approved,featured.eq.true,and(status.eq.pending,submitted_by.eq.${userId})`
+    )
     .order("created_at", { ascending: false });
 
   if (res.error) throw res.error;

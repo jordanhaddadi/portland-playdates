@@ -96,7 +96,7 @@ function MainApp({
   myDatesTab, setMyDatesTab, showToast, setShowToast,
   setDbPlaydates,
   setDbRsvps,
-  allVenues, allDates, filtered, activePd, goingDates, hostingDates,
+  allVenues, featuredVenues, allDates, filtered, activePd, goingDates, hostingDates,
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
   handleShare, topbarCopied,
   handleRestart,
@@ -551,6 +551,28 @@ function MainApp({
                 {townLabel} ›
               </div>
             </div>
+            {/* {featuredVenues.length > 0 && (
+              <div className="featured-venues-section">
+                <div className="featured-venues-label">
+                  ⭐ Partner Venues
+                </div>
+                <div className="featured-venues-scroll">
+                  {featuredVenues.map(v => (
+                    <div key={v.name} className="featured-venue-card">
+                      <div className="featured-venue-emoji">{v.emoji}</div>
+                      <div className="featured-venue-name">{v.name}</div>
+                      <div className="featured-venue-town">{v.town}</div>
+                      <button
+                        className="featured-venue-cta"
+                        onClick={() => setShowCreate(true)}
+                      >
+                        Host here
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )} */}
             <div className="weather-banner">
               <span style={{fontSize:22}}>🌤</span>
               <span><strong>This weekend:</strong> 38–45°F, mostly clear. Great bundled-up park weather!</span>
@@ -574,6 +596,11 @@ function MainApp({
                   <div className="card-img" style={{background:pd.bg}}>
                     {pd.emoji}
                     {pd.comingSoon && <div className="card-comingsoon">Coming Soon</div>}
+                    {pd.isPartnerVenue && (
+                      <div className="card-partner-badge">
+                        ⭐ Partner venue
+                      </div>
+                    )}
                     <div className="card-weather">{pd.weather}</div>
                   </div>
                   <div className="card-body">
@@ -794,6 +821,7 @@ export default function App() {
   }));
 
   const allVenues = [...PORTLAND_VENUES, ...mappedDbVenues, ...userVenues];
+  const featuredVenues = dbVenues.filter(v => v.featured === true);
   const mappedDbPlaydates = dbPlaydates.map(pd => {
     const rsvpsForDate = dbRsvps.filter(r => r.playdate_id === pd.id);
     const isJoined = session?.user?.id
@@ -841,6 +869,11 @@ export default function App() {
         (pd.host_id === session?.user?.id ? profile.name : null) ||
         "Someone",
       hostAvatar: hostAttendee.emoji,
+      isPartnerVenue: dbVenues.some(
+        v =>
+          v.featured === true &&
+          (v.name || "").toLowerCase() === (pd.venue || "").toLowerCase()
+      ),
       description: pd.description || "",
       x: pin.x,
       y: pin.y,
@@ -1405,6 +1438,7 @@ export default function App() {
         setDbPlaydates={setDbPlaydates}
         setDbRsvps={setDbRsvps}
         allVenues={allVenues}
+        featuredVenues={featuredVenues}
         allDates={allDates}
         filtered={filtered}
         activePd={activePd}
