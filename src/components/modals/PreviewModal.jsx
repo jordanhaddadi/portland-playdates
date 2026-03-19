@@ -6,20 +6,19 @@ export function PreviewModal({ showPreviewModal, setShowPreviewModal, handleShar
       onClick={() => setShowPreviewModal(false)}>
       <div className="preview-modal"
         onClick={e => e.stopPropagation()}>
-        <span className="preview-modal-emoji">👀</span>
+        <span className="preview-modal-emoji">⚓</span>
         <div className="preview-modal-title">
-          You're previewing<br />PlayDates
+          Welcome to Beta!
         </div>
         <div className="preview-modal-sub">
-          Poke around and get a feel for what's coming
-          to Portland this spring. Everything here is
-          a preview. Playdates are not live yet.
+          Portland PlayDates is officially live. Real profiles,
+          real playdates, real neighbors. Your village starts here.
         </div>
         <div className="preview-modal-pills">
           {[
-            { icon:"🗺️", text:"Browse the map", sub:"See where playdates will happen" },
-            { icon:"🛝", text:"Explore venues", sub:"Parks, libraries, and cafés near you" },
-            { icon:"📅", text:"Host a playdate", sub:"Try creating one to see how it works" },
+            { icon:"📅", text:"First playdate is live", sub:"Littles & Lattes at Salud, March 28" },
+            { icon:"🛝", text:"Find your people", sub:"Browse families in your neighborhood" },
+            { icon:"🌟", text:"Host your own", sub:"Create a playdate and bring parents together" },
           ].map(p => (
             <div key={p.text} className="preview-modal-pill">
               <span className="preview-modal-pill-icon">{p.icon}</span>
@@ -34,12 +33,12 @@ export function PreviewModal({ showPreviewModal, setShowPreviewModal, handleShar
           className="ob-btn-primary"
           onClick={() => setShowPreviewModal(false)}
         >
-          Let's explore 🌊
+          Let's go! ⚓
         </button>
         <div className="preview-modal-share">
           <div className="preview-modal-share-text">
-            Invite 3 parent friends so there are more families
-            in your neighborhood when we launch.
+            Know a Portland parent who needs their village?
+            Share Portland PlayDates with one friend.
           </div>
           <button
             className="preview-modal-share-btn"
@@ -52,4 +51,3 @@ export function PreviewModal({ showPreviewModal, setShowPreviewModal, handleShar
     </div>
   );
 }
-
