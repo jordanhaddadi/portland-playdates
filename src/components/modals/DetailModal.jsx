@@ -59,6 +59,33 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
             <div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>Public meetup · Kid-friendly venue</div>
           </div>
         </div>
+
+        <div className="detail-attendees">
+          <div className="detail-attendees-label">
+            {showDetail.attendees?.length || 0} going
+          </div>
+          {(showDetail.attendees || []).map((a, i) => (
+            <div key={i} className="detail-attendee-row">
+              <div className="detail-attendee-avatar">
+                {a.photoUrl ? (
+                  <img
+                    src={a.photoUrl}
+                    alt=""
+                    className="detail-attendee-photo"
+                  />
+                ) : (
+                  a.emoji || "👤"
+                )}
+              </div>
+              <div className="detail-attendee-info">
+                <div className="detail-attendee-name">
+                  {a.name || "Parent"}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
         <button className={`rsvp-btn ${(showDetail._isDb ? showDetail._joined : joined[showDetail.id]) ? "going" : ""}`}
           onClick={() => {
             if (showDetail._isDb && onToggleJoin) {

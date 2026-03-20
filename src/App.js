@@ -74,6 +74,66 @@ function formatPlaydateTime(dateStr, timeStr) {
   return `${datePart} · ${timePart}`;
 }
 
+function CardAttendees({ pd }) {
+  const [showAttendees, setShowAttendees] = useState(false);
+
+  return (
+    <div
+      className="card-attendees-wrap"
+      onClick={e => {
+        e.stopPropagation();
+        setShowAttendees(s => !s);
+      }}
+    >
+      {showAttendees && (
+        <div className="card-attendees-popover">
+          {(pd.attendees || []).map((a, i) => (
+            <div key={i} className="card-attendees-popover-row">
+              <span>
+                {a && a.photoUrl ? (
+                  <img
+                    src={a.photoUrl}
+                    className="popover-avatar-img"
+                    alt=""
+                  />
+                ) : (
+                  (a && a.emoji) || a
+                )}
+              </span>
+              <span>{a?.name || "Parent"}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="avatar-stack">
+        {pd.attendees.slice(0,3).map((a,i) => (
+          <div
+            key={i}
+            className="avatar-sm"
+            style={{background:["#EAF3F8","#EEF4EF","#FDF0E8"][i%3]}}
+          >
+            {a && a.photoUrl ? (
+              <img
+                src={a.photoUrl}
+                alt="attendee"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "50%",
+                }}
+              />
+            ) : (
+              a.emoji || a
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function MainApp({
   session,
   enableAuth,
@@ -594,15 +654,27 @@ function MainApp({
             <div className="cards">
               {filtered.map(pd => (
                 <div key={pd.id} className="card" onClick={() => setShowDetail(pd)}>
-                  <div className="card-img" style={{background:pd.bg}}>
-                    {pd.emoji}
+                  <div className="card-img" style={{
+                    background: pd.cover_photo_url ? "none" : pd.bg
+                  }}>
+                    {pd.cover_photo_url ? (
+                      <img
+                        src={pd.cover_photo_url}
+                        alt={pd.title}
+                        className="card-cover-photo"
+                      />
+                    ) : (
+                      <div className="card-emoji">{pd.emoji}</div>
+                    )}
                     {pd.comingSoon && <div className="card-comingsoon">Coming Soon</div>}
                     {pd.isPartnerVenue && (
                       <div className="card-partner-badge">
                         ⭐ Partner venue
                       </div>
                     )}
-                    <div className="card-weather">{pd.weather}</div>
+                    {pd.isReal && !pd.comingSoon && (
+                      <div className="card-weather card-real-badge">📍 Real playdate</div>
+                    )}
                   </div>
                   <div className="card-body">
                     <div className="card-tags">
@@ -618,30 +690,7 @@ function MainApp({
                     <div className="card-meta">🕐 {pd.date}</div>
                     <div className="card-footer">
                       <div className="attendees">
-                        <div className="avatar-stack">
-                          {pd.attendees.slice(0,3).map((a,i) => (
-                            <div
-                              key={i}
-                              className="avatar-sm"
-                              style={{background:["#EAF3F8","#EEF4EF","#FDF0E8"][i%3]}}
-                            >
-                              {a && a.photoUrl ? (
-                                <img
-                                  src={a.photoUrl}
-                                  alt="attendee"
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    borderRadius: "50%",
-                                  }}
-                                />
-                              ) : (
-                                a.emoji || a
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                        <CardAttendees pd={pd} />
                         <span className="attendee-text">{pd.count} going</span>
                       </div>
                       <button
@@ -831,8 +880,9 @@ export default function App() {
 
     const pin = HOOD_PIN_DEFAULTS[pd.hood] || HOOD_PIN_DEFAULTS.default;
     const hostAttendee = {
-      emoji: pd.host ? `${pd.host.avatar || "👤"}${pd.host.tone || ""}` : "👤",
+      emoji: `${pd.host?.avatar || "👤"}${pd.host?.tone || ""}`,
       photoUrl: pd.host?.avatar_url || null,
+      name: pd.host?.name || "Someone",
     };
 
     const rsvpAttendees = rsvpsForDate.map(r => {
@@ -840,13 +890,14 @@ export default function App() {
       return {
         emoji: p ? `${p.avatar || "👤"}${p.tone || ""}` : "👤",
         photoUrl: p?.avatar_url || null,
+        name: p?.name || "Parent",
       };
     });
 
     const attendeeAvatars = [
       hostAttendee,
       ...rsvpAttendees.filter(a => a.emoji !== hostAttendee.emoji)
-    ].slice(0, 3);
+    ];
 
     return {
       id: pd.id,
@@ -870,6 +921,8 @@ export default function App() {
         (pd.host_id === session?.user?.id ? profile.name : null) ||
         "Someone",
       hostAvatar: hostAttendee.emoji,
+      cover_photo_url: pd.cover_photo_url || null,
+      isReal: true,
       isPartnerVenue: dbVenues.some(
         v =>
           v.featured === true &&
