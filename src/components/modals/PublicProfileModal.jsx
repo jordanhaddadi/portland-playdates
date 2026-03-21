@@ -23,12 +23,29 @@ export function PublicProfileModal({ userId, onClose, currentUserId }) {
           .select("name, age, emoji")
           .eq("profile_id", userId);
 
-        const { data: playdatesData } = await supabase
+        const { data: hostingData } = await supabase
           .from("playdates")
           .select("id, title, venue, date, time, emoji")
           .eq("host_id", userId)
           .order("date", { ascending: true })
           .limit(3);
+
+        const { data: rsvpData } = await supabase
+          .from("rsvps")
+          .select("playdate_id, playdates(id, title, venue, date, time, emoji)")
+          .eq("profile_id", userId)
+          .limit(5);
+
+        const rsvpPlaydates = (rsvpData || [])
+          .map(r => r.playdates)
+          .filter(Boolean)
+          .filter(pd => !(hostingData || []).some(h => h.id === pd.id));
+
+        const allPlaydates = [
+          ...(hostingData || []).map(pd => ({ ...pd, isHosting: true })),
+          ...rsvpPlaydates.map(pd => ({ ...pd, isHosting: false })),
+        ].sort((a, b) => (a.date > b.date ? 1 : -1))
+          .slice(0, 4);
 
         if (!cancelled) {
           if (!data) {
@@ -37,7 +54,7 @@ export function PublicProfileModal({ userId, onClose, currentUserId }) {
             setPub({
               ...data,
               kids: kidsData || [],
-              playdates: playdatesData || [],
+              playdates: allPlaydates,
             });
           }
         }
@@ -127,6 +144,16 @@ export function PublicProfileModal({ userId, onClose, currentUserId }) {
                     <div>
                       <div className="pub-profile-pd-title">
                         {pd.title}
+                        {pd.isHosting && (
+                          <span className="pub-pd-hosting-tag">
+                            Hosting
+                          </span>
+                        )}
+                        {!pd.isHosting && (
+                          <span className="pub-pd-hosting-tag">
+                            Going
+                          </span>
+                        )}
                       </div>
                       <div className="pub-profile-pd-meta">
                         {pd.venue}

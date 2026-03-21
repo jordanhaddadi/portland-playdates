@@ -1009,6 +1009,19 @@ export const styles = `
     font-size: 13px;
   }
 
+  .pub-pd-hosting-tag {
+    display: inline-block;
+    background: var(--ocean-pale);
+    color: var(--ocean);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 100px;
+    margin-left: 6px;
+    font-family: 'DM Sans', sans-serif;
+    vertical-align: middle;
+  }
+
   .pub-profile-pd-meta {
     font-size: 12px;
     color: var(--muted);
