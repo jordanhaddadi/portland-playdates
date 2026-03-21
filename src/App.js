@@ -18,6 +18,7 @@ import { CreateModal } from './components/modals/CreateModal';
 import { DetailModal } from './components/modals/DetailModal';
 import { TownsModal } from './components/modals/TownsModal';
 import { PreviewModal } from './components/modals/PreviewModal';
+import { PublicProfileModal } from "./components/modals/PublicProfileModal";
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
@@ -76,61 +77,79 @@ function formatPlaydateTime(dateStr, timeStr) {
 
 function CardAttendees({ pd }) {
   const [showAttendees, setShowAttendees] = useState(false);
+  const [viewingProfile, setViewingProfile] = useState(null);
 
   return (
-    <div
-      className="card-attendees-wrap"
-      onClick={e => {
-        e.stopPropagation();
-        setShowAttendees(s => !s);
-      }}
-    >
-      {showAttendees && (
-        <div className="card-attendees-popover">
-          {(pd.allAttendees || []).map((a, i) => (
-            <div key={i} className="card-attendees-popover-row">
-              <span>
-                {a && a.photoUrl ? (
-                  <img
-                    src={a.photoUrl}
-                    className="popover-avatar-img"
-                    alt=""
-                  />
-                ) : (
-                  (a && a.emoji) || a
-                )}
-              </span>
-              <span>{a?.name || "Parent"}</span>
+    <>
+      <div
+        className="card-attendees-wrap"
+        onClick={e => {
+          e.stopPropagation();
+          setShowAttendees(s => !s);
+        }}
+      >
+        {showAttendees && (
+          <div className="card-attendees-popover">
+            {(pd.allAttendees || []).map((a, i) => (
+              <div
+                key={i}
+                className="card-attendees-popover-row"
+                style={{ cursor: a.profileId ? "pointer" : "default" }}
+                onClick={e => {
+                  e.stopPropagation();
+                  if (a.profileId) setViewingProfile(a.profileId);
+                }}
+              >
+                <span>
+                  {a && a.photoUrl ? (
+                    <img
+                      src={a.photoUrl}
+                      className="popover-avatar-img"
+                      alt=""
+                    />
+                  ) : (
+                    (a && a.emoji) || a
+                  )}
+                </span>
+                <span>{a?.name || "Parent"}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="avatar-stack">
+          {pd.attendees.slice(0,3).map((a,i) => (
+            <div
+              key={i}
+              className="avatar-sm"
+              style={{background:["#EAF3F8","#EEF4EF","#FDF0E8"][i%3]}}
+            >
+              {a && a.photoUrl ? (
+                <img
+                  src={a.photoUrl}
+                  alt="attendee"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                  }}
+                />
+              ) : (
+                a.emoji || a
+              )}
             </div>
           ))}
         </div>
-      )}
-
-      <div className="avatar-stack">
-        {pd.attendees.slice(0,3).map((a,i) => (
-          <div
-            key={i}
-            className="avatar-sm"
-            style={{background:["#EAF3F8","#EEF4EF","#FDF0E8"][i%3]}}
-          >
-            {a && a.photoUrl ? (
-              <img
-                src={a.photoUrl}
-                alt="attendee"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  borderRadius: "50%",
-                }}
-              />
-            ) : (
-              a.emoji || a
-            )}
-          </div>
-        ))}
       </div>
-    </div>
+      {viewingProfile && (
+        <PublicProfileModal
+          userId={viewingProfile}
+          currentUserId={pd._hostId}
+          onClose={() => setViewingProfile(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -803,6 +822,7 @@ function MainApp({
           joined={joined}
           setJoined={setJoined}
           onToggleJoin={handleToggleJoin}
+          currentUserId={session?.user?.id}
         />
       </div>
     </>
@@ -885,6 +905,7 @@ export default function App() {
       emoji: `${pd.host?.avatar || "👤"}${pd.host?.tone || ""}`,
       photoUrl: pd.host?.avatar_url || null,
       name: pd.host?.name || "Someone",
+      profileId: pd.host_id,
     };
 
     const rsvpAttendees = rsvpsForDate
@@ -895,6 +916,7 @@ export default function App() {
           emoji: p ? `${p.avatar || "👤"}${p.tone || ""}` : "👤",
           photoUrl: p?.avatar_url || null,
           name: p?.name || "Parent",
+          profileId: r.profile_id,
         };
       });
 

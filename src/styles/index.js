@@ -902,6 +902,132 @@ export const styles = `
   .rsvp-btn:hover { background: #B04830; }
   .rsvp-btn.going { background: var(--sage); }
 
+  .pub-profile-sheet {
+    background: white;
+    border-radius: 24px;
+    padding: 24px 24px 32px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    width: 88%;
+    max-width: 380px;
+    margin: auto;
+  }
+
+  .pub-profile-loading {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+  }
+
+  .pub-profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .pub-profile-avatar {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .pub-profile-avatar-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+
+  .pub-profile-name {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 4px;
+  }
+
+  .pub-profile-meta {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .pub-profile-bio {
+    font-size: 14px;
+    color: var(--charcoal);
+    line-height: 1.6;
+    font-style: italic;
+    max-width: 280px;
+  }
+
+  .pub-profile-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pub-profile-section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 10px;
+  }
+
+  .pub-profile-kid-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--charcoal);
+    padding: 4px 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .pub-profile-pd-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 14px;
+  }
+
+  .pub-profile-pd-title {
+    font-weight: 500;
+    color: var(--charcoal);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+  }
+
+  .pub-profile-pd-meta {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .pub-profile-close {
+    width: 100%;
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    padding: 12px;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    margin-top: 8px;
+  }
+
   /* ── PROFILE VIEW ── */
   .profile-page {
     background: var(--cream);
