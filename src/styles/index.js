@@ -884,6 +884,19 @@ export const styles = `
     color: var(--charcoal);
     font-family: 'DM Sans', sans-serif;
   }
+  .attendee-host-badge {
+    display: inline-block;
+    background: var(--ocean-pale);
+    color: var(--ocean);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 100px;
+    margin-left: 8px;
+    font-family: 'DM Sans', sans-serif;
+    vertical-align: middle;
+  }
   .detail-icon { font-size: 16px; margin-top: 1px; }
   .rsvp-btn { width: 100%; background: var(--terracotta); color: white; border: none; border-radius: 16px; padding: 16px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 20px; transition: background 0.15s; }
   .rsvp-btn:hover { background: #B04830; }

@@ -80,6 +80,9 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
               <div className="detail-attendee-info">
                 <div className="detail-attendee-name">
                   {a.name || "Parent"}
+                  {i === 0 && (
+                    <span className="attendee-host-badge">Hosting</span>
+                  )}
                 </div>
               </div>
             </div>

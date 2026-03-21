@@ -1,5 +1,5 @@
 import { supabase } from './lib/supabase';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
 import { FOUNDER_EMAIL, AVATARS, KID_EMOJIS, HOODS, AGE_GROUPS, PORTLAND_VENUES, TOWNS_NEARBY, VENUE_TYPES, VENUE_PERKS, ALL_NEIGHBORHOODS, PLAYDATES, HOOD_PIN_DEFAULTS, pinColor } from './constants';
 import { FONT, styles } from './styles/index';
@@ -853,6 +853,8 @@ export default function App() {
   });
   const [myDatesTab, setMyDatesTab] = useState("going");
   const [showToast, setShowToast] = useState(false);
+  const hasFetchedRef = useRef(false);
+  const hasLoadedProfileRef = useRef(false);
 
   const handleSetActiveNav = (nav) => {
     if (typeof window !== "undefined") {
@@ -885,14 +887,16 @@ export default function App() {
       name: pd.host?.name || "Someone",
     };
 
-    const rsvpAttendees = rsvpsForDate.map(r => {
-      const p = r.profiles;
-      return {
-        emoji: p ? `${p.avatar || "👤"}${p.tone || ""}` : "👤",
-        photoUrl: p?.avatar_url || null,
-        name: p?.name || "Parent",
-      };
-    });
+    const rsvpAttendees = rsvpsForDate
+      .filter(r => r.profile_id !== pd.host_id)
+      .map(r => {
+        const p = r.profiles;
+        return {
+          emoji: p ? `${p.avatar || "👤"}${p.tone || ""}` : "👤",
+          photoUrl: p?.avatar_url || null,
+          name: p?.name || "Parent",
+        };
+      });
 
     const attendeeAvatars = [
       hostAttendee,
@@ -915,7 +919,7 @@ export default function App() {
       weather: "📍 Real playdate",
       attendees: attendeeAvatars,
       allAttendees: [hostAttendee, ...rsvpAttendees],
-      count: rsvpsForDate.length,
+      count: [hostAttendee, ...rsvpAttendees].length,
       host: profile.name || "Host",
       hostName:
         pd.host?.name ||
@@ -1165,6 +1169,7 @@ export default function App() {
     });
     const { data: { subscription } } =
       supabase.auth.onAuthStateChange((_event, session) => {
+        if (_event === "TOKEN_REFRESHED") return;
         setSession(session);
         setAuthReady(true);
       });
@@ -1265,10 +1270,15 @@ export default function App() {
   useEffect(() => {
     if (!authReady) return;
     if (!session?.user?.id) return;
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
 
     (async () => {
       try {
-        const [pds, rsvps] = await Promise.all([fetchPlaydates(), fetchRsvps()]);
+        const [pds, rsvps] = await Promise.all([
+          fetchPlaydates(),
+          fetchRsvps()
+        ]);
         setDbPlaydates(pds);
         setDbRsvps(rsvps);
       } catch (e) {
