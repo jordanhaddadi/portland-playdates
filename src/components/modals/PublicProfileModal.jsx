@@ -7,7 +7,6 @@ export function PublicProfileModal({ userId, onClose, currentUserId }) {
 
   useEffect(() => {
     if (!userId) return;
-    if (userId === currentUserId) return;
 
     let cancelled = false;
     (async () => {
@@ -52,9 +51,9 @@ export function PublicProfileModal({ userId, onClose, currentUserId }) {
     return () => {
       cancelled = true;
     };
-  }, [userId, currentUserId]);
+  }, [userId]);
 
-  if (!userId || userId === currentUserId) return null;
+  if (!userId) return null;
 
   return (
     <div

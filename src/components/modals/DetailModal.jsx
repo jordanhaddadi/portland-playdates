@@ -77,7 +77,7 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
                   className="detail-attendee-row"
                   style={{ cursor: a.profileId ? "pointer" : "default" }}
                   onClick={() => {
-                    if (a.profileId && a.profileId !== currentUserId) {
+                    if (a.profileId) {
                       setViewingProfile(a.profileId);
                     }
                   }}
