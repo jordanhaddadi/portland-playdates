@@ -1193,7 +1193,7 @@ export default function App() {
         console.error("Failed to load venues:", e);
       }
     })();
-  }, [authReady, session]);
+  }, [authReady, session?.user?.id]);
 
   useEffect(() => {
     if (!authReady) {
@@ -1249,7 +1249,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [authReady, session]);
+  }, [authReady, session?.user?.id]);
 
   useEffect(() => {
     if (!session) return;
