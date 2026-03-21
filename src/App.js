@@ -87,7 +87,7 @@ function CardAttendees({ pd }) {
     >
       {showAttendees && (
         <div className="card-attendees-popover">
-          {(pd.attendees || []).map((a, i) => (
+          {(pd.allAttendees || []).map((a, i) => (
             <div key={i} className="card-attendees-popover-row">
               <span>
                 {a && a.photoUrl ? (
@@ -897,7 +897,7 @@ export default function App() {
     const attendeeAvatars = [
       hostAttendee,
       ...rsvpAttendees.filter(a => a.emoji !== hostAttendee.emoji)
-    ];
+    ].slice(0, 3);
 
     return {
       id: pd.id,
@@ -914,6 +914,7 @@ export default function App() {
       timeStr: pd.time,
       weather: "📍 Real playdate",
       attendees: attendeeAvatars,
+      allAttendees: [hostAttendee, ...rsvpAttendees],
       count: rsvpsForDate.length,
       host: profile.name || "Host",
       hostName:

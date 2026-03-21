@@ -29,7 +29,7 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <div className="avatar-stack">
-                {(showDetail.attendees || []).slice(0,3).map((a,i) => (
+                {(showDetail.allAttendees || showDetail.attendees || []).slice(0,3).map((a,i) => (
                   <div
                     key={i}
                     className="avatar-sm"
@@ -53,7 +53,7 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
                 ))}
               </div>
               <div style={{ fontSize: 13, color: "var(--muted)" }}>
-                {showDetail.count} Portland parents going
+                {(showDetail.allAttendees?.length ?? showDetail.attendees?.length ?? showDetail.count ?? 0)} Portland parents going
               </div>
             </div>
             <div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>Public meetup · Kid-friendly venue</div>
@@ -62,9 +62,9 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
 
         <div className="detail-attendees">
           <div className="detail-attendees-label">
-            {showDetail.attendees?.length || 0} going
+            {(showDetail.allAttendees?.length ?? showDetail.attendees?.length ?? 0)} going
           </div>
-          {(showDetail.attendees || []).map((a, i) => (
+          {(showDetail.allAttendees || showDetail.attendees || []).map((a, i) => (
             <div key={i} className="detail-attendee-row">
               <div className="detail-attendee-avatar">
                 {a.photoUrl ? (
