@@ -1,7 +1,9 @@
 import { TOWNS_NEARBY } from "../../constants";
 
-export function TownsModal({ showTowns, setShowTowns, activeTowns, toggleTown }) {
+export function TownsModal({ showTowns, setShowTowns, activeTowns, toggleTown, setActiveTowns }) {
   if (!showTowns) return null;
+  const allTownIds = ["portland", ...TOWNS_NEARBY.map(t => t.id)];
+  const allSelected = allTownIds.every(id => activeTowns.includes(id));
 
   return (
     <div className="modal-overlay" onClick={() => setShowTowns(false)}>
@@ -10,6 +12,22 @@ export function TownsModal({ showTowns, setShowTowns, activeTowns, toggleTown })
         <div className="towns-modal-scroll">
           <div style={{fontFamily:"Fraunces,serif",fontSize:22,fontWeight:500,marginBottom:6}}>Your area ⚓</div>
           <div style={{fontSize:13,color:"var(--muted)",marginBottom:4}}>Select all the towns you want to see playdates from.</div>
+          <div className="towns-select-all-row">
+            <button
+              className="towns-select-btn"
+              onClick={() => setActiveTowns(allTownIds)}
+              disabled={allSelected}
+            >
+              Select all
+            </button>
+            <button
+              className="towns-select-btn"
+              onClick={() => setActiveTowns(["portland"])}
+              disabled={activeTowns.length <= 1}
+            >
+              Clear all
+            </button>
+          </div>
 
           <div className="towns-section-label">Portland</div>
           <div className="towns-grid">

@@ -694,6 +694,29 @@ export const styles = `
   .towns-modal-save {
     margin-top: 0;
   }
+  .towns-select-all-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .towns-select-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: white;
+    color: var(--charcoal);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .towns-select-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
   .towns-section-label { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin: 16px 0 10px; }
   .towns-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
   .town-btn { padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--border); background: white; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--charcoal); cursor: pointer; text-align: left; display: flex; flex-direction: column; transition: all 0.15s; }

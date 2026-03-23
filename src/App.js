@@ -169,7 +169,7 @@ function MainApp({
   showTallySuccess, setShowTallySuccess, showPreviewModal, setShowPreviewModal,
   view, setView, activeHood, setActiveHood, activePin, setActivePin,
   showDetail, setShowDetail, showCreate, setShowCreate, showTowns, setShowTowns,
-  activeTowns, toggleTown, townLabel, selectedTownNames, joined, setJoined,
+  activeTowns, setActiveTowns, toggleTown, townLabel, selectedTownNames, joined, setJoined,
   selectedAges, setSelectedAges, selectedVenue, setSelectedVenue,
   showAddVenue, setShowAddVenue, newVenue, setNewVenue, setUserVenues,
   coverPhoto, setCoverPhoto, coverPhotoPreview, setCoverPhotoPreview,
@@ -824,6 +824,7 @@ function MainApp({
           setShowTowns={setShowTowns}
           activeTowns={activeTowns}
           toggleTown={toggleTown}
+          setActiveTowns={setActiveTowns}
         />
 
         <DetailModal
@@ -1594,6 +1595,7 @@ export default function App() {
         showTowns={showTowns}
         setShowTowns={setShowTowns}
         activeTowns={activeTowns}
+        setActiveTowns={setActiveTowns}
         toggleTown={toggleTown}
         townLabel={townLabel}
         selectedTownNames={selectedTownNames}
