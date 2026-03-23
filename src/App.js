@@ -172,6 +172,7 @@ function MainApp({
   activeTowns, toggleTown, townLabel, selectedTownNames, joined, setJoined,
   selectedAges, setSelectedAges, selectedVenue, setSelectedVenue,
   showAddVenue, setShowAddVenue, newVenue, setNewVenue, setUserVenues,
+  isRecurring, setIsRecurring, recurringFrequency, setRecurringFrequency,
   formData, setFormData, created, setCreated, activeNav, handleSetActiveNav,
   myDatesTab, setMyDatesTab, showToast, setShowToast,
   setDbPlaydates,
@@ -802,6 +803,10 @@ function MainApp({
           newVenue={newVenue}
           setNewVenue={setNewVenue}
           saveNewVenue={saveNewVenue}
+          isRecurring={isRecurring}
+          setIsRecurring={setIsRecurring}
+          recurringFrequency={recurringFrequency}
+          setRecurringFrequency={setRecurringFrequency}
           selectedAges={selectedAges}
           setSelectedAges={setSelectedAges}
           isCreateDisabled={isCreateDisabled}
@@ -862,7 +867,9 @@ export default function App() {
   const [showAddVenue, setShowAddVenue] = useState(false);
   const [newVenue, setNewVenue] = useState({ name:"", addr:"", type:"", perks:[] });
   const [userVenues, setUserVenues] = useState([]);
-  const [formData, setFormData] = useState({ title: "", date: "", time: "" });
+  const [formData, setFormData] = useState({ title: "", date: "", time: "", description: "" });
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringFrequency, setRecurringFrequency] = useState("weekly");
   const [created, setCreated] = useState([]);
   const [dbPlaydates, setDbPlaydates] = useState([]);
   const [dbRsvps, setDbRsvps] = useState([]);
@@ -1385,30 +1392,74 @@ export default function App() {
     const pin = HOOD_PIN_DEFAULTS[hoodNameForPin] || HOOD_PIN_DEFAULTS.default;
 
     if (session?.user?.id) {
-      let newPlaydate;
+      const playdatePayload = {
+        title: formData.title,
+        venue: v?.name || selectedVenue,
+        addr: v?.addr || "",
+        town: venueTown,
+        hood: venueHood,
+        date: formData.date,
+        time: formData.time,
+        ages: formatAgeRange(selectedAges),
+        description: formData.description || "",
+        emoji: v?.emoji || "🌟",
+        max_kids: null
+      };
+
+      const generateDates = (startDate, frequency, count) => {
+        if (!startDate) return [];
+        const base = new Date(`${startDate}T12:00:00`);
+        if (isNaN(base.getTime())) return [];
+        const dates = [];
+        for (let i = 0; i < count; i++) {
+          const d = new Date(base);
+          if (frequency === "weekly") {
+            d.setDate(base.getDate() + i * 7);
+          } else if (frequency === "biweekly") {
+            d.setDate(base.getDate() + i * 14);
+          } else if (frequency === "monthly") {
+            d.setMonth(base.getMonth() + i);
+          }
+          dates.push(d.toISOString().split("T")[0]);
+        }
+        return dates;
+      };
+
       try {
-        newPlaydate = await createPlaydate(session.user.id, {
-          title: formData.title,
-          venue: v?.name || selectedVenue,
-          addr: v?.addr || "",
-          town: venueTown,
-          hood: venueHood,
-          date: formData.date,
-          time: formData.time,
-          ages: formatAgeRange(selectedAges),
-          description: "New playdate!",
-          emoji: v?.emoji || "🌟",
-          max_kids: null
-        });
+        if (isRecurring) {
+          if (!formData.date) {
+            alert("Please add a start date for recurring playdates.");
+            return;
+          }
+          const recurringDates = generateDates(
+            formData.date, recurringFrequency, 3
+          );
+          if (!recurringDates.length) {
+            alert("Could not generate dates. Please check the start date.");
+            return;
+          }
+          for (const date of recurringDates) {
+            const newPd = await createPlaydate(session.user.id, {
+              ...playdatePayload,
+              date,
+            });
+            try {
+              await joinPlaydate(newPd.id, session.user.id);
+            } catch (e) {
+              console.error("Failed to auto-RSVP:", e);
+            }
+          }
+        } else {
+          const newPd = await createPlaydate(session.user.id, playdatePayload);
+          try {
+            await joinPlaydate(newPd.id, session.user.id);
+          } catch (e) {
+            console.error("Failed to auto-RSVP:", e);
+          }
+        }
       } catch (e) {
         console.error("Failed to create playdate:", e);
         return;
-      }
-
-      try {
-        await joinPlaydate(newPlaydate.id, session.user.id);
-      } catch (e) {
-        console.error("Failed to auto-RSVP host:", e);
       }
 
       try {
@@ -1420,7 +1471,9 @@ export default function App() {
       }
 
       setShowCreate(false);
-      setFormData({ title:"", date:"", time:"" });
+      setFormData({ title:"", date:"", time:"", description: "" });
+      setIsRecurring(false);
+      setRecurringFrequency("weekly");
       setSelectedAges([]);
       setSelectedVenue(null);
       setShowAddVenue(false);
@@ -1445,14 +1498,16 @@ export default function App() {
         attendees: ["🧡"],
         count: 1,
         host: profile.name || "You",
-        description: "New playdate!",
+        description: formData.description || "",
         x: pin.x,
         y: pin.y,
       },
       ...p,
     ]);
     setShowCreate(false);
-    setFormData({ title:"", date:"", time:"" });
+    setFormData({ title:"", date:"", time:"", description: "" });
+    setIsRecurring(false);
+    setRecurringFrequency("weekly");
     setSelectedAges([]);
     setSelectedVenue(null);
     setShowAddVenue(false);
@@ -1513,6 +1568,10 @@ export default function App() {
         newVenue={newVenue}
         setNewVenue={setNewVenue}
         setUserVenues={setUserVenues}
+        isRecurring={isRecurring}
+        setIsRecurring={setIsRecurring}
+        recurringFrequency={recurringFrequency}
+        setRecurringFrequency={setRecurringFrequency}
         formData={formData}
         setFormData={setFormData}
         created={created}

@@ -13,6 +13,10 @@ export function CreateModal({
   newVenue,
   setNewVenue,
   saveNewVenue,
+  isRecurring,
+  setIsRecurring,
+  recurringFrequency,
+  setRecurringFrequency,
   selectedAges,
   setSelectedAges,
   isCreateDisabled,
@@ -113,6 +117,57 @@ export function CreateModal({
             <label className="form-label">Time</label>
             <input type="time" className="form-input" value={formData.time} onChange={e => setFormData(f=>({...f,time:e.target.value}))}/>
           </div>
+        </div>
+        <div className="create-field">
+          <label className="create-label">
+            Description
+            <span className="create-optional">optional</span>
+          </label>
+          <textarea
+            className="create-textarea"
+            placeholder="What should parents know? Who is it for, what to expect, anything to bring..."
+            value={formData.description}
+            onChange={e => setFormData(f => ({
+              ...f, description: e.target.value
+            }))}
+            rows={3}
+          />
+        </div>
+
+        <div className="create-field">
+          <label className="create-label">Repeats</label>
+          <div className="recurring-toggle">
+            <button
+              type="button"
+              className={`recurring-btn ${!isRecurring ? "active" : ""}`}
+              onClick={() => setIsRecurring(false)}
+            >
+              One time
+            </button>
+            <button
+              type="button"
+              className={`recurring-btn ${isRecurring ? "active" : ""}`}
+              onClick={() => setIsRecurring(true)}
+            >
+              Recurring
+            </button>
+          </div>
+          {isRecurring && (
+            <div className="recurring-frequency">
+              {["weekly", "biweekly", "monthly"].map(freq => (
+                <button
+                  key={freq}
+                  type="button"
+                  className={`freq-btn ${recurringFrequency === freq ? "active" : ""}`}
+                  onClick={() => setRecurringFrequency(freq)}
+                >
+                  {freq === "weekly" ? "Every week" :
+                   freq === "biweekly" ? "Every 2 weeks" :
+                   "Every month"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="form-field">
           <label className="form-label">Kids' ages welcome</label>

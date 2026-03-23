@@ -835,6 +835,92 @@ export const styles = `
   .age-chip.selected { background: var(--ocean-pale); border-color: var(--ocean); color: var(--ocean); }
   .submit-btn { width: 100%; background: var(--charcoal); color: white; border: none; border-radius: 16px; padding: 16px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 8px; transition: background 0.15s; }
   .submit-btn:hover { background: var(--terracotta); }
+  .create-field {
+    margin-bottom: 16px;
+  }
+
+  .create-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--charcoal);
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 6px;
+  }
+
+  .create-optional {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+
+  .create-textarea {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--charcoal);
+    resize: none;
+    line-height: 1.5;
+    background: white;
+    box-sizing: border-box;
+  }
+
+  .create-textarea:focus {
+    outline: none;
+    border-color: var(--ocean);
+  }
+
+  .recurring-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .recurring-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: white;
+    color: var(--charcoal);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .recurring-btn.active {
+    background: var(--ocean);
+    color: white;
+    border-color: var(--ocean);
+  }
+
+  .recurring-frequency {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .freq-btn {
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: white;
+    color: var(--charcoal);
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+
+  .freq-btn.active {
+    background: var(--ocean-pale);
+    color: var(--ocean);
+    border-color: var(--ocean-light);
+  }
   .detail-img { width: 100%; height: 140px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 54px; margin-bottom: 16px; }
   .detail-title { font-family: 'Fraunces', serif; font-size: 23px; font-weight: 500; margin-bottom: 4px; line-height: 1.2; }
   .detail-host { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
