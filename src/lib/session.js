@@ -224,7 +224,7 @@ export async function fetchPlaydates() {
         )
       )
     `)
-    .order("created_at", { ascending: false });
+    .order("date", { ascending: true });
 
   if (res.error) {
     throw res.error;

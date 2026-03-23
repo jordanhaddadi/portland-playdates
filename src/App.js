@@ -865,7 +865,13 @@ export default function App() {
   const [showDetail, setShowDetail] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showTowns, setShowTowns] = useState(false);
-  const [activeTowns, setActiveTowns] = useState(["portland"]);
+  const [activeTowns, setActiveTowns] = useState(() => {
+    const allTownIds = [
+      "portland",
+      ...TOWNS_NEARBY.map(t => t.id)
+    ];
+    return allTownIds;
+  });
   const [joined, setJoined] = useState({});
   const [selectedAges, setSelectedAges] = useState([]);
   const [selectedVenue, setSelectedVenue] = useState(null);
@@ -1015,9 +1021,12 @@ export default function App() {
     return match ? match.name : id;
   });
 
+  const totalTowns = 1 + TOWNS_NEARBY.length;
   const townLabel =
     activeTowns.length === 1
       ? `📍 ${selectedTownNames[0]}`
+      : activeTowns.length >= totalTowns
+      ? `📍 All areas`
       : `📍 ${activeTowns.length} areas selected`;
 
   const handleShare = async () => {
