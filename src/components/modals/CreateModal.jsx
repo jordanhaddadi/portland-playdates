@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { AGE_GROUPS, VENUE_TYPES, VENUE_PERKS } from "../../constants";
 
 export function CreateModal({
@@ -13,6 +14,10 @@ export function CreateModal({
   newVenue,
   setNewVenue,
   saveNewVenue,
+  coverPhoto,
+  setCoverPhoto,
+  coverPhotoPreview,
+  setCoverPhotoPreview,
   isRecurring,
   setIsRecurring,
   recurringFrequency,
@@ -23,6 +28,8 @@ export function CreateModal({
   submitHelper,
   handleCreate,
 }) {
+  const coverInputRef = useRef(null);
+
   if (!showCreate) return null;
 
   return (
@@ -30,6 +37,55 @@ export function CreateModal({
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-handle"/>
         <h2>Host a Playdate ⚓</h2>
+        <div className="create-field">
+          <label className="create-label">
+            Cover photo
+            <span className="create-optional">optional</span>
+          </label>
+
+          {coverPhotoPreview ? (
+            <div className="cover-photo-preview-wrap">
+              <img
+                src={coverPhotoPreview}
+                alt="Cover preview"
+                className="cover-photo-preview"
+              />
+              <button
+                type="button"
+                className="cover-photo-remove"
+                onClick={() => {
+                  setCoverPhoto(null);
+                  setCoverPhotoPreview(null);
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div
+              className="cover-photo-upload-btn"
+              onClick={() => coverInputRef.current?.click()}
+            >
+              📷 Add a cover photo
+            </div>
+          )}
+
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={e => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setCoverPhoto(file);
+              const reader = new FileReader();
+              reader.onload = ev => setCoverPhotoPreview(ev.target.result);
+              reader.readAsDataURL(file);
+              e.target.value = "";
+            }}
+          />
+        </div>
         <div className="form-field">
           <label className="form-label">Playdate name</label>
           <input className="form-input" placeholder="e.g. Deering Oaks Duck Walk"

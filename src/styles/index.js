@@ -921,6 +921,51 @@ export const styles = `
     color: var(--ocean);
     border-color: var(--ocean-light);
   }
+  .cover-photo-upload-btn {
+    border: 1.5px dashed var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    transition: border-color 0.15s;
+  }
+
+  .cover-photo-upload-btn:hover {
+    border-color: var(--ocean);
+    color: var(--ocean);
+  }
+
+  .cover-photo-preview-wrap {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .cover-photo-preview {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+    border-radius: 14px;
+  }
+
+  .cover-photo-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
   .detail-img { width: 100%; height: 140px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 54px; margin-bottom: 16px; }
   .detail-title { font-family: 'Fraunces', serif; font-size: 23px; font-weight: 500; margin-bottom: 4px; line-height: 1.2; }
   .detail-host { font-size: 13px; color: var(--muted); margin-bottom: 16px; }

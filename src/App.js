@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
 import { FOUNDER_EMAIL, AVATARS, KID_EMOJIS, HOODS, AGE_GROUPS, PORTLAND_VENUES, TOWNS_NEARBY, VENUE_TYPES, VENUE_PERKS, ALL_NEIGHBORHOODS, PLAYDATES, HOOD_PIN_DEFAULTS, pinColor } from './constants';
 import { FONT, styles } from './styles/index';
-import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids, createPlaydate, fetchPlaydates, fetchRsvps, joinPlaydate, leavePlaydate, fetchVenues, createVenueSubmission, uploadAvatar } from './lib/session';
+import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids, createPlaydate, fetchPlaydates, fetchRsvps, joinPlaydate, leavePlaydate, fetchVenues, createVenueSubmission, uploadAvatar, uploadPlaydateCover } from './lib/session';
 import { WelcomeScreen } from './components/onboarding/WelcomeScreen';
 import { AboutYouScreen } from './components/onboarding/AboutYouScreen';
 import { YourKidsScreen } from './components/onboarding/YourKidsScreen';
@@ -172,6 +172,7 @@ function MainApp({
   activeTowns, toggleTown, townLabel, selectedTownNames, joined, setJoined,
   selectedAges, setSelectedAges, selectedVenue, setSelectedVenue,
   showAddVenue, setShowAddVenue, newVenue, setNewVenue, setUserVenues,
+  coverPhoto, setCoverPhoto, coverPhotoPreview, setCoverPhotoPreview,
   isRecurring, setIsRecurring, recurringFrequency, setRecurringFrequency,
   formData, setFormData, created, setCreated, activeNav, handleSetActiveNav,
   myDatesTab, setMyDatesTab, showToast, setShowToast,
@@ -803,6 +804,10 @@ function MainApp({
           newVenue={newVenue}
           setNewVenue={setNewVenue}
           saveNewVenue={saveNewVenue}
+          coverPhoto={coverPhoto}
+          setCoverPhoto={setCoverPhoto}
+          coverPhotoPreview={coverPhotoPreview}
+          setCoverPhotoPreview={setCoverPhotoPreview}
           isRecurring={isRecurring}
           setIsRecurring={setIsRecurring}
           recurringFrequency={recurringFrequency}
@@ -868,6 +873,8 @@ export default function App() {
   const [newVenue, setNewVenue] = useState({ name:"", addr:"", type:"", perks:[] });
   const [userVenues, setUserVenues] = useState([]);
   const [formData, setFormData] = useState({ title: "", date: "", time: "", description: "" });
+  const [coverPhoto, setCoverPhoto] = useState(null);
+  const [coverPhotoPreview, setCoverPhotoPreview] = useState(null);
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringFrequency, setRecurringFrequency] = useState("weekly");
   const [created, setCreated] = useState([]);
@@ -882,6 +889,7 @@ export default function App() {
   const [showToast, setShowToast] = useState(false);
   const hasFetchedRef = useRef(false);
   const hasLoadedProfileRef = useRef(false);
+  const isCreatingRef = useRef(false);
 
   const handleSetActiveNav = (nav) => {
     if (typeof window !== "undefined") {
@@ -1379,6 +1387,10 @@ export default function App() {
   };
 
   const handleCreate = async () => {
+    if (isCreatingRef.current) return;
+    isCreatingRef.current = true;
+
+    try {
     if (!formData.title || !selectedVenue) {
       return;
     }
@@ -1412,14 +1424,12 @@ export default function App() {
         if (isNaN(base.getTime())) return [];
         const dates = [];
         for (let i = 0; i < count; i++) {
-          const d = new Date(base);
-          if (frequency === "weekly") {
-            d.setDate(base.getDate() + i * 7);
-          } else if (frequency === "biweekly") {
-            d.setDate(base.getDate() + i * 14);
-          } else if (frequency === "monthly") {
-            d.setMonth(base.getMonth() + i);
-          }
+          const d = new Date(
+            base.getFullYear(),
+            base.getMonth() + (frequency === "monthly" ? i : 0),
+            base.getDate() + (frequency === "weekly" ? i * 7 :
+                              frequency === "biweekly" ? i * 14 : 0)
+          );
           dates.push(d.toISOString().split("T")[0]);
         }
         return dates;
@@ -1443,6 +1453,13 @@ export default function App() {
               ...playdatePayload,
               date,
             });
+            if (coverPhoto && newPd?.id) {
+              try {
+                await uploadPlaydateCover(newPd.id, coverPhoto);
+              } catch (e) {
+                console.error("Failed to upload cover photo:", e);
+              }
+            }
             try {
               await joinPlaydate(newPd.id, session.user.id);
             } catch (e) {
@@ -1451,6 +1468,13 @@ export default function App() {
           }
         } else {
           const newPd = await createPlaydate(session.user.id, playdatePayload);
+          if (coverPhoto && newPd?.id) {
+            try {
+              await uploadPlaydateCover(newPd.id, coverPhoto);
+            } catch (e) {
+              console.error("Failed to upload cover photo:", e);
+            }
+          }
           try {
             await joinPlaydate(newPd.id, session.user.id);
           } catch (e) {
@@ -1472,6 +1496,8 @@ export default function App() {
 
       setShowCreate(false);
       setFormData({ title:"", date:"", time:"", description: "" });
+      setCoverPhoto(null);
+      setCoverPhotoPreview(null);
       setIsRecurring(false);
       setRecurringFrequency("weekly");
       setSelectedAges([]);
@@ -1506,6 +1532,8 @@ export default function App() {
     ]);
     setShowCreate(false);
     setFormData({ title:"", date:"", time:"", description: "" });
+    setCoverPhoto(null);
+    setCoverPhotoPreview(null);
     setIsRecurring(false);
     setRecurringFrequency("weekly");
     setSelectedAges([]);
@@ -1513,6 +1541,9 @@ export default function App() {
     setShowAddVenue(false);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+    } finally {
+      isCreatingRef.current = false;
+    }
   };
 
   return (
@@ -1568,6 +1599,10 @@ export default function App() {
         newVenue={newVenue}
         setNewVenue={setNewVenue}
         setUserVenues={setUserVenues}
+        coverPhoto={coverPhoto}
+        setCoverPhoto={setCoverPhoto}
+        coverPhotoPreview={coverPhotoPreview}
+        setCoverPhotoPreview={setCoverPhotoPreview}
         isRecurring={isRecurring}
         setIsRecurring={setIsRecurring}
         recurringFrequency={recurringFrequency}

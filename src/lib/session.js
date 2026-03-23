@@ -173,6 +173,35 @@ export async function createPlaydate(userId, form) {
   return res.data;
 }
 
+export async function uploadPlaydateCover(playdateId, file) {
+  const ext = file.name.split(".").pop();
+  const path = `${playdateId}/cover.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("covers")
+    .upload(path, file, {
+      upsert: true,
+      contentType: file.type,
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from("covers")
+    .getPublicUrl(path);
+
+  const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
+
+  const { error: updateError } = await supabase
+    .from("playdates")
+    .update({ cover_photo_url: publicUrl })
+    .eq("id", playdateId);
+
+  if (updateError) throw updateError;
+
+  return publicUrl;
+}
+
 export async function fetchPlaydates() {
   const res = await supabase
     .from("playdates")
