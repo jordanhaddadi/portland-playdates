@@ -1346,14 +1346,12 @@ export default function App() {
   }, [dbRsvps, session]);
 
   useEffect(() => {
-    if (obStep !== 4) return;
-
     const hasSeenPreviewModal = sessionStorage.getItem("ppd_seen_preview_modal") === "true";
-    if (!hasSeenPreviewModal) {
+    if (!hasSeenPreviewModal && obStep === 4) {
       setShowPreviewModal(true);
       sessionStorage.setItem("ppd_seen_preview_modal", "true");
     }
-  }, [obStep]);
+  }, []);
 
   useEffect(() => {
     const shouldShowPreview = localStorage.getItem("ppd_show_preview") === "true";
