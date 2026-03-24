@@ -694,7 +694,14 @@ function MainApp({
                       </div>
                     )}
                     {pd.isReal && !pd.comingSoon && (
-                      <div className="card-weather card-real-badge">📍 Real playdate</div>
+                      <div className="card-weather card-real-badge">
+                        📍 {(() => {
+                          const venueMatch = allVenues.find(
+                            v => v.name?.toLowerCase() === pd.venue?.toLowerCase()
+                          );
+                          return venueMatch?.town || pd.town || "Greater Portland";
+                        })()}
+                      </div>
                     )}
                   </div>
                   <div className="card-body">
