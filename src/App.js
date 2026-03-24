@@ -1155,6 +1155,28 @@ export default function App() {
 
   const saveNewVenue = () => {
     if (newVenue.name && newVenue.addr && newVenue.type) {
+      const ALLOWED_TOWNS = [
+        "Portland",
+        "South Portland",
+        "Cape Elizabeth",
+        "Falmouth",
+        "Scarborough",
+        "Yarmouth",
+        "Westbrook",
+        "Gorham",
+        "Saco / Biddeford",
+      ];
+
+      const venueTownCheck = newVenue.town || profile.town || "Portland";
+      if (!ALLOWED_TOWNS.some(t => t.toLowerCase() === venueTownCheck.toLowerCase())) {
+        alert(
+          "We are currently focused on Greater Portland venues only. " +
+          "If your venue is outside this area, please email jordan@portlandplaydates.com " +
+          "and we will be in touch!"
+        );
+        return;
+      }
+
       if (session?.user?.id) {
         (async () => {
           try {
