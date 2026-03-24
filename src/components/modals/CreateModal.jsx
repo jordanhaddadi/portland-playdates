@@ -151,7 +151,7 @@ export function CreateModal({
                 </div>
               </div>
               <div style={{fontSize:11,color:"var(--ocean)",marginBottom:12,lineHeight:1.5}}>
-                ⏳ Your venue will show as <strong>pending</strong> until 2 other parents use it for a playdate — then it's official!
+                Venues are currently limited to Greater Portland. If your venue is outside this area, email jordan@portlandplaydates.com and we will be in touch!
               </div>
               <div style={{display:"flex",gap:8}}>
                 <button type="button" style={{flex:"0 0 auto",background:"var(--border)",color:"var(--muted)",border:"none",borderRadius:12,padding:"10px 14px",fontFamily:"DM Sans,sans-serif",fontSize:13,cursor:"pointer"}}
