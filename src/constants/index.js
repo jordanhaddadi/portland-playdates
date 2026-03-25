@@ -17,19 +17,16 @@ export const PORTLAND_VENUES = [
   { emoji:"🛝", name:"Payson Park Playground", addr:"Baxter Blvd, Back Cove", town:"Portland", type:"Park" },
   { emoji:"📚", name:"Portland Public Library", addr:"5 Monument Square, Downtown", town:"Portland", type:"Library" },
   { emoji:"☕", name:"Bayside American Cafe", addr:"98 Portland St, Bayside", town:"Portland", type:"Café" },
-  { emoji:"🌿", name:"Smalls Café", addr:"28 Brackett St, West End", town:"Portland", type:"Café" },
   { emoji:"🏖️", name:"Willard Beach", addr:"Shore Rd, South Portland", town:"South Portland", type:"Beach" },
   { emoji:"🌲", name:"Fort Williams Park", addr:"Shore Rd, Cape Elizabeth", town:"Cape Elizabeth", type:"Park" },
   { emoji:"🛝", name:"Mill Creek Park", addr:"Cottage Rd, South Portland", town:"South Portland", type:"Park" },
   { emoji:"📚", name:"Falmouth Memorial Library", addr:"5 Lunt Rd, Falmouth", town:"Falmouth", type:"Library" },
-  { emoji:"🧁", name:"Coffee By Design", addr:"620 Congress St, Portland", town:"Portland", type:"Café" },
   { emoji:"🎨", name:"Children's Museum of Maine", addr:"142 Free St, Portland", town:"Portland", type:"Indoor" },
   { emoji:"🏖️", name:"Ferry Beach State Park", addr:"95 Bayview Rd, Saco", town:"Saco", type:"Beach" },
   { emoji:"🛝", name:"Rotary Park", addr:"Beach St, Saco", town:"Saco", type:"Park" },
   { emoji:"📚", name:"Dyer Library", addr:"371 Main St, Saco", town:"Saco", type:"Library" },
   { emoji:"🎳", name:"Funtown Splashtown", addr:"774 Portland Rd, Saco", town:"Saco", type:"Indoor" },
   { emoji:"🌊", name:"Hills Beach", addr:"Hills Beach Rd, Biddeford", town:"Biddeford", type:"Beach" },
-  { emoji:"☕", name:"Element Coffee", addr:"184 Main St, Biddeford", town:"Biddeford", type:"Café" },
 ];
 
 export const TOWNS_NEARBY = [
