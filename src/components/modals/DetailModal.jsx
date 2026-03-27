@@ -29,11 +29,14 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
             </div>
             <div className="detail-row"><span className="detail-icon">🕐</span><span>{showDetail.date}</span></div>
             <div className="detail-row"><span className="detail-icon">📍</span><div><div>{showDetail.venue}</div><div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{showDetail.addr}</div></div></div>
-            <div className="detail-row"><span className="detail-icon">🌤</span><span>
-              {(weatherCache && showDetail?.dateStr && weatherCache[showDetail.dateStr])
-                ? weatherCache[showDetail.dateStr]
-                : null}
-            </span></div>
+            {(weatherCache && showDetail?.dateStr && weatherCache[showDetail.dateStr]) && (
+              <div className="detail-row">
+                <span className="detail-icon">
+                  {weatherCache[showDetail.dateStr].split(" ")[0]}
+                </span>
+                <span>{weatherCache[showDetail.dateStr].split(" ").slice(1).join(" ")}</span>
+              </div>
+            )}
             <div className="detail-row"><span className="detail-icon">💬</span><span>{showDetail.description}</span></div>
             <div className="detail-row">
               <span className="detail-icon">👥</span>
