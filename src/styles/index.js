@@ -654,7 +654,7 @@ export const styles = `
     cursor: pointer;
     font-family: 'DM Sans', sans-serif;
   }
-  .weather-banner { margin: 0 24px 18px; background: var(--ocean-pale); border: 1.5px solid var(--ocean-light); border-radius: 16px; padding: 11px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ocean); }
+  .weather-banner { margin: 0 24px 18px; background: var(--ocean-pale); border: 1.5px solid var(--ocean-light); border-radius: 16px; padding: 11px 16px; display: flex; align-items: flex-start; flex-direction: column; gap: 10px; font-size: 13px; color: var(--ocean); }
   .hero { margin: 0 24px 24px; background: var(--charcoal); border-radius: 24px; padding: 24px 28px 22px; position: relative; overflow: hidden; }
   .hero-wave { position: absolute; bottom: 0; right: 0; width: 180px; height: 100px; background: radial-gradient(ellipse at bottom right, var(--ocean) 0%, transparent 65%); opacity: 0.4; }
   .hero-blob { position: absolute; top: -20px; right: 20px; width: 100px; height: 100px; background: radial-gradient(circle, var(--terracotta) 0%, transparent 70%); opacity: 0.3; border-radius: 50%; }

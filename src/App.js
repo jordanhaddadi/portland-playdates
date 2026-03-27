@@ -75,6 +75,29 @@ function formatPlaydateTime(dateStr, timeStr) {
   return `${datePart} · ${timePart}`;
 }
 
+const getWeekendWeatherSummary = (cache) => {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
+  const daysUntilSun = (0 - dayOfWeek + 7) % 7 || 7;
+
+  const toDateStr = (d) => d.toISOString().split("T")[0];
+  const sat = toDateStr(
+    new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysUntilSat)
+  );
+  const sun = toDateStr(
+    new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysUntilSun)
+  );
+
+  const satWeather = cache[sat];
+  const sunWeather = cache[sun];
+
+  if (satWeather && sunWeather) return `${satWeather} Sat · ${sunWeather} Sun`;
+  if (satWeather) return `${satWeather} this Saturday`;
+  if (sunWeather) return `${sunWeather} this Sunday`;
+  return null;
+};
+
 function CardAttendees({ pd }) {
   const [showAttendees, setShowAttendees] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
@@ -656,10 +679,35 @@ function MainApp({
                 </div>
               </div>
             )} */}
-            <div className="weather-banner">
-              <span style={{fontSize:22}}>🌤</span>
-              <span><strong>This weekend:</strong> 38–45°F, mostly clear. Great bundled-up park weather!</span>
-            </div>
+            {(() => {
+              const today = new Date();
+              const toDateStr = (d) => d.toISOString().split("T")[0];
+              const dayOfWeek = today.getDay();
+              const sat = toDateStr(new Date(today.getFullYear(), today.getMonth(), today.getDate() + ((6 - dayOfWeek + 7) % 7 || 7)));
+              const sun = toDateStr(new Date(today.getFullYear(), today.getMonth(), today.getDate() + ((0 - dayOfWeek + 7) % 7 || 7)));
+              const satW = weatherCache[sat];
+              const sunW = weatherCache[sun];
+              if (!satW && !sunW) return null;
+              const primary = satW || sunW;
+              const desc = primary.split(" · ")[1] || "";
+              const blurb =
+                desc.includes("Snow") || desc.includes("Shower") || desc.includes("Rain") ? "Bundle up and get out there!" :
+                desc.includes("Sunny") ? "Perfect playdate weather!" :
+                desc.includes("Cloudy") ? "Great bundled-up park weather!" :
+                "Get outside this weekend!";
+              const parts = [
+                satW ? `Sat: ${satW}` : null,
+                sunW ? `Sun: ${sunW}` : null
+              ].filter(Boolean).join(" | ");
+              return (
+                <div className="weather-banner">
+                  <div>
+                    <div><strong>This weekend:</strong> {parts}</div>
+                    <div style={{fontSize:12, marginTop:3, opacity:0.8}}>{blurb}</div>
+                  </div>
+                </div>
+              );
+            })()}
             <div className="hero">
               <div className="hero-blob"/><div className="hero-wave"/>
               <div className="hero-label">⚓ {allDates.length} playdates near you</div>
