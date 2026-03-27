@@ -12,7 +12,22 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
         <div className="modal-overlay" onClick={() => setShowDetail(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-handle"/>
-            <div className="detail-img" style={{background:showDetail.bg}}>{showDetail.emoji}</div>
+            <div className="detail-img" style={{background: showDetail.cover_photo_url ? "none" : showDetail.bg}}>
+              {showDetail.cover_photo_url ? (
+                <img
+                  src={showDetail.cover_photo_url}
+                  alt={showDetail.title}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "inherit",
+                  }}
+                />
+              ) : (
+                showDetail.emoji
+              )}
+            </div>
             <div className="card-tags" style={{marginBottom:10}}>
               <span className="tag tag-age">👶 {showDetail.ages}</span>
               <span className="tag tag-venue">📍 {showDetail.hood}</span>
