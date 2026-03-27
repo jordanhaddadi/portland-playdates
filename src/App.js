@@ -1150,7 +1150,7 @@ export default function App() {
     localStorage.removeItem("ppd_beta_session");
     localStorage.removeItem("ppd_preview_seen");
     localStorage.removeItem("ppd_show_preview");
-    sessionStorage.removeItem("ppd_seen_preview_modal");
+    localStorage.removeItem("ppd_seen_preview_modal");
     sessionStorage.removeItem("ppd_active_nav");
 
     setSession(null);
@@ -1457,10 +1457,10 @@ export default function App() {
   }, [dbRsvps, session]);
 
   useEffect(() => {
-    const hasSeenPreviewModal = sessionStorage.getItem("ppd_seen_preview_modal") === "true";
+    const hasSeenPreviewModal = localStorage.getItem("ppd_seen_preview_modal") === "true";
     if (!hasSeenPreviewModal && obStep === 4) {
       setShowPreviewModal(true);
-      sessionStorage.setItem("ppd_seen_preview_modal", "true");
+      localStorage.setItem("ppd_seen_preview_modal", "true");
     }
   }, []);
 
