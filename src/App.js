@@ -710,7 +710,7 @@ function MainApp({
                   </div>
                   <div className="card-body">
                     <div className="card-tags">
-                      <span className="tag tag-age">👶 {pd.ages}</span>
+                      <span className="tag tag-age">👶 Ages {pd.ages.replace("Ages ", "")}</span>
                       <span className="tag tag-venue">📍 {pd.venue}</span>
                     </div>
                     <h3>{pd.title}</h3>
@@ -1459,7 +1459,7 @@ export default function App() {
 
   const formatAgeRange = (ages) => {
     if (!ages || ages.length === 0) return "All ages";
-    if (ages.length === 1) return ages[0];
+    if (ages.length === 1) return `Ages ${ages[0]}`;
 
     const parsed = ages
       .map(label => {
@@ -1472,12 +1472,12 @@ export default function App() {
       })
       .filter(Boolean);
 
-    if (parsed.length === 0) return ages.join(", ");
+    if (parsed.length === 0) return `Ages ${ages.join(", ")}`;
 
     const min = Math.min(...parsed.map(a => a.min));
     const max = Math.max(...parsed.map(a => a.max));
 
-    return `${min}–${max}`;
+    return `Ages ${min}–${max}`;
   };
 
   const handleCreate = async () => {
