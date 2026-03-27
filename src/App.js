@@ -182,6 +182,7 @@ function MainApp({
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
   handleShare, topbarCopied,
   handleRestart,
+  weatherCache,
 }) {
   const isAuthed = !!session?.user?.id;
   if (enableAuth && !authReady) {
@@ -695,12 +696,15 @@ function MainApp({
                     )}
                     {pd.isReal && !pd.comingSoon && (
                       <div className="card-weather card-real-badge">
-                        📍 {(() => {
-                          const venueMatch = allVenues.find(
-                            v => v.name?.toLowerCase() === pd.venue?.toLowerCase()
-                          );
-                          return venueMatch?.town || pd.town || "Greater Portland";
-                        })()}
+                        {weatherCache[pd.dateStr]
+                          ? weatherCache[pd.dateStr]
+                          : `📍 ${(() => {
+                              const venueMatch = allVenues.find(
+                                v => v.name?.toLowerCase() === pd.venue?.toLowerCase()
+                              );
+                              return venueMatch?.town || pd.town || "Greater Portland";
+                            })()}`
+                        }
                       </div>
                     )}
                   </div>
@@ -841,6 +845,7 @@ function MainApp({
           setJoined={setJoined}
           onToggleJoin={handleToggleJoin}
           currentUserId={session?.user?.id}
+          weatherCache={weatherCache}
         />
       </div>
     </>
@@ -856,6 +861,7 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [weatherCache, setWeatherCache] = useState({});
 
   // Onboarding state
   const [obStep, setObStep] = useState(() => loadSession().obStep); // 0=welcome, 1=about, 2=kids, 3=caregiver, 4=app, 5=waitlist (not in active flow)
@@ -904,6 +910,34 @@ export default function App() {
   const hasFetchedRef = useRef(false);
   const hasLoadedProfileRef = useRef(false);
   const isCreatingRef = useRef(false);
+
+  const weatherCodeToEmoji = (code) => {
+    if (code === 0) return "☀️";
+    if (code <= 2) return "⛅";
+    if (code <= 3) return "☁️";
+    if (code <= 48) return "🌫️";
+    if (code <= 57) return "🌧️";
+    if (code <= 67) return "🌧️";
+    if (code <= 77) return "❄️";
+    if (code <= 82) return "🌦️";
+    if (code <= 86) return "🌨️";
+    if (code <= 99) return "⛈️";
+    return "🌤️";
+  };
+
+  const weatherDescFromCode = (code) => {
+    if (code === 0) return "Sunny";
+    if (code <= 2) return "Partly cloudy";
+    if (code <= 3) return "Cloudy";
+    if (code <= 48) return "Foggy";
+    if (code <= 57) return "Light rain";
+    if (code <= 67) return "Rainy";
+    if (code <= 77) return "Snow";
+    if (code <= 82) return "Showers";
+    if (code <= 86) return "Snow showers";
+    if (code <= 99) return "Thunderstorms";
+    return "Mostly clear";
+  };
 
   const handleSetActiveNav = (nav) => {
     if (typeof window !== "undefined") {
@@ -967,7 +1001,7 @@ export default function App() {
       date: formatPlaydateTime(pd.date, pd.time),
       dateStr: pd.date,
       timeStr: pd.time,
-      weather: "📍 Real playdate",
+      weather: weatherCache[pd.date] || "",
       attendees: attendeeAvatars,
       allAttendees: [hostAttendee, ...rsvpAttendees],
       count: [hostAttendee, ...rsvpAttendees].length,
@@ -1390,6 +1424,29 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!authReady) return;
+    (async () => {
+      try {
+        const res = await fetch(
+          "https://api.open-meteo.com/v1/forecast?latitude=43.6615&longitude=-70.2553&daily=temperature_2m_max,temperature_2m_min,weathercode&temperature_unit=fahrenheit&timezone=America%2FNew_York&forecast_days=14"
+        );
+        const data = await res.json();
+        const cache = {};
+        (data.daily.time || []).forEach((date, i) => {
+          const code = data.daily.weathercode[i];
+          const high = Math.round(data.daily.temperature_2m_max[i]);
+          const low = Math.round(data.daily.temperature_2m_min[i]);
+          const emoji = weatherCodeToEmoji(code);
+          cache[date] = `${emoji} ${high}°F · ${weatherDescFromCode(code)}`;
+        });
+        setWeatherCache(cache);
+      } catch (e) {
+        console.error("Weather fetch failed:", e);
+      }
+    })();
+  }, [authReady]);
+
   const isCreateDisabled = !formData.title || !selectedVenue;
   let submitHelper = "";
   if (!formData.title && !selectedVenue) {
@@ -1671,6 +1728,7 @@ export default function App() {
         handleShare={handleShare}
         topbarCopied={topbarCopied}
         handleRestart={handleRestart}
+        weatherCache={weatherCache}
       />} />
     </Routes>
   );
