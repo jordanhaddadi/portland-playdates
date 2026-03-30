@@ -133,36 +133,66 @@ export function PublicProfileModal({ userId, onClose, currentUserId }) {
               </div>
             )}
 
-            {pub.playdates?.length > 0 && (
-              <div className="pub-profile-section">
-                <div className="pub-profile-section-label">
-                  Upcoming playdates
-                </div>
-                {pub.playdates.map((pd, i) => (
-                  <div key={i} className="pub-profile-pd-row">
-                    <span>{pd.emoji}</span>
-                    <div>
-                      <div className="pub-profile-pd-title">
-                        {pd.title}
-                        {pd.isHosting && (
-                          <span className="pub-pd-hosting-tag">
-                            Hosting
-                          </span>
-                        )}
-                        {!pd.isHosting && (
-                          <span className="pub-pd-hosting-tag">
-                            Going
-                          </span>
-                        )}
-                      </div>
-                      <div className="pub-profile-pd-meta">
-                        {pd.venue}
-                      </div>
+            {(() => {
+              const list = pub.playdates || [];
+              const upcoming = list.filter(pd => {
+                if (!pd.date) return true;
+                return new Date(`${pd.date}T12:00:00`) >= new Date();
+              });
+              const past = list.filter(pd => {
+                if (!pd.date) return false;
+                return new Date(`${pd.date}T12:00:00`) < new Date();
+              });
+              const mostRecentPast = past.length
+                ? past.reduce((best, pd) => (pd.date > best.date ? pd : best))
+                : null;
+
+              const row = (pd, i) => (
+                <div key={pd.id ?? i} className="pub-profile-pd-row">
+                  <span>{pd.emoji}</span>
+                  <div>
+                    <div className="pub-profile-pd-title">
+                      {pd.title}
+                      {pd.isHosting && (
+                        <span className="pub-pd-hosting-tag">
+                          Hosting
+                        </span>
+                      )}
+                      {!pd.isHosting && (
+                        <span className="pub-pd-hosting-tag">
+                          Going
+                        </span>
+                      )}
+                    </div>
+                    <div className="pub-profile-pd-meta">
+                      {pd.venue}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              );
+
+              if (upcoming.length > 0) {
+                return (
+                  <div className="pub-profile-section">
+                    <div className="pub-profile-section-label">
+                      Upcoming playdates
+                    </div>
+                    {upcoming.map((pd, i) => row(pd, i))}
+                  </div>
+                );
+              }
+              if (mostRecentPast) {
+                return (
+                  <div className="pub-profile-section">
+                    <div className="pub-profile-section-label">
+                      Recently hosted
+                    </div>
+                    {row(mostRecentPast, 0)}
+                  </div>
+                );
+              }
+              return null;
+            })()}
 
             <button
               className="pub-profile-close"

@@ -739,11 +739,19 @@ export const styles = `
   .save-venue-btn { width: 100%; background: var(--ocean); color: white; border: none; border-radius: 12px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
   .save-venue-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
 
-  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; margin-bottom: 12px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; margin-top: 0; margin-bottom: 12px; }
   .section-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; }
   .see-all { font-size: 13px; font-weight: 500; color: var(--terracotta); cursor: pointer; background: none; border: none; }
-  .cards { padding: 0 24px; display: flex; flex-direction: column; gap: 13px; margin-bottom: 100px; }
+  .cards { padding: 0 24px; display: flex; flex-direction: column; gap: 13px; margin-bottom: 50px; }
   .card { background: white; border-radius: 20px; overflow: hidden; border: 1.5px solid var(--border); cursor: pointer; transition: transform 0.18s, box-shadow 0.18s; }
+  .card-past {
+    opacity: 0.6;
+    filter: grayscale(20%);
+  }
+  .past-cards {
+    margin-top: 0;
+    margin-bottom: 40px;
+  }
   .card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(30,43,47,0.1); }
   .card-img { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 42px; position: relative; }
   .card-cover-photo {

@@ -201,7 +201,7 @@ function MainApp({
   myDatesTab, setMyDatesTab, showToast, setShowToast,
   setDbPlaydates,
   setDbRsvps,
-  allVenues, featuredVenues, allDates, filtered, activePd, goingDates, hostingDates,
+  allVenues, featuredVenues, allDates, filtered, upcomingFiltered, pastFiltered, activePd, goingDates, hostingDates, pastDates,
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
   handleShare, topbarCopied,
   handleRestart,
@@ -445,6 +445,7 @@ function MainApp({
             setTab={setMyDatesTab}
             goingDates={goingDates}
             hostingDates={hostingDates}
+            pastDates={pastDates}
             onOpenDetail={pd => setShowDetail(pd)}
             onBrowsePlaydates={() => { handleSetActiveNav("home"); setView("list"); }}
             onHostOne={() => setShowCreate(true)}
@@ -722,7 +723,7 @@ function MainApp({
               <button className="see-all" onClick={() => setView("map")}>🗺️ Map →</button>
             </div>
             <div className="cards">
-              {filtered.map(pd => (
+              {upcomingFiltered.map(pd => (
                 <div key={pd.id} className="card" onClick={() => setShowDetail(pd)}>
                   <div className="card-img" style={{
                     background: pd.cover_photo_url ? "none" : pd.bg
@@ -793,14 +794,101 @@ function MainApp({
                   </div>
                 </div>
               ))}
-              {filtered.length===0 && (
+              {upcomingFiltered.length === 0 && (
                 <div style={{textAlign:"center",padding:"36px 0",color:"var(--muted)"}}>
                   <div style={{fontSize:38,marginBottom:10}}>🌲</div>
-                  <div style={{fontFamily:"Fraunces,serif",fontSize:17,marginBottom:5}}>No playdates here yet</div>
-                  <div style={{fontSize:13}}>Be the first to host one in {selectedTownNames.length === 1 ? selectedTownNames[0] : "one of your selected areas"}!</div>
+                  <div style={{fontFamily:"Fraunces,serif",fontSize:17,marginBottom:5}}>
+                    No upcoming playdates
+                  </div>
+                  <div style={{fontSize:13}}>
+                    Be the first to host one!
+                  </div>
                 </div>
               )}
             </div>
+
+            {pastFiltered.length > 0 && (
+              <>
+                <div className="section-header" style={{ marginTop: 8 }}>
+                  <div className="section-title" style={{ color: "var(--muted)" }}>
+                    Past playdates
+                  </div>
+                </div>
+                <div className="cards past-cards">
+                  {pastFiltered.map(pd => (
+                    <div key={pd.id} className="card card-past" onClick={() => setShowDetail(pd)}>
+                      <div className="card-img" style={{
+                        background: pd.cover_photo_url ? "none" : pd.bg
+                      }}>
+                        {pd.cover_photo_url ? (
+                          <img
+                            src={pd.cover_photo_url}
+                            alt={pd.title}
+                            className="card-cover-photo"
+                          />
+                        ) : (
+                          <div className="card-emoji">{pd.emoji}</div>
+                        )}
+                        {pd.comingSoon && <div className="card-comingsoon">Coming Soon</div>}
+                        {pd.isPartnerVenue && (
+                          <div className="card-partner-badge">
+                            ⭐ Partner venue
+                          </div>
+                        )}
+                        {pd.isReal && !pd.comingSoon && (
+                          <div className="card-weather card-real-badge">
+                            {weatherCache[pd.dateStr]
+                              ? weatherCache[pd.dateStr]
+                              : `📍 ${(() => {
+                                  const venueMatch = allVenues.find(
+                                    v => v.name?.toLowerCase() === pd.venue?.toLowerCase()
+                                  );
+                                  return venueMatch?.town || pd.town || "Greater Portland";
+                                })()}`
+                            }
+                          </div>
+                        )}
+                      </div>
+                      <div className="card-body">
+                        <div className="card-tags">
+                          <span className="tag tag-age">👶 Ages {pd.ages.replace("Ages ", "")}</span>
+                          <span className="tag tag-venue">📍 {pd.venue}</span>
+                        </div>
+                        <h3>{pd.title}</h3>
+                        {pd._isDb && (
+                          <div className="card-host-line">
+                            Hosted by {pd.hostName || "Host"}
+                          </div>
+                        )}
+                        <div className="card-meta">🕐 {pd.date}</div>
+                        <div className="card-footer">
+                          <div className="attendees">
+                            <CardAttendees pd={pd} />
+                            <span className="attendee-text">{pd.count} going</span>
+                          </div>
+                          <button
+                            className={`join-btn ${((pd._isDb && pd._hostId === session?.user?.id) || (pd._isDb ? pd._joined : joined[pd.id])) ? "joined" : ""}`}
+                            onClick={e => {
+                              e.stopPropagation();
+                              if (pd._isDb) {
+                                if (pd._hostId === session?.user?.id) return;
+                                handleToggleJoin(pd.id);
+                              } else {
+                                setJoined(j => ({ ...j, [pd.id]: !j[pd.id] }));
+                              }
+                            }}
+                          >
+                            {(pd._isDb && pd._hostId === session?.user?.id)
+                              ? "Hosting"
+                              : ((pd._isDb ? pd._joined : joined[pd.id]) ? "✓ Going!" : "Join")}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
 
@@ -1098,10 +1186,39 @@ export default function App() {
     return activeTowns.includes(townId);
   });
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const upcomingFiltered = filtered.filter(pd => {
+    if (!pd.dateStr) return true;
+    const pdDate = new Date(`${pd.dateStr}T12:00:00`);
+    return pdDate >= today;
+  });
+
+  const pastFiltered = filtered
+    .filter(pd => {
+      if (!pd.dateStr) return false;
+      const pdDate = new Date(`${pd.dateStr}T12:00:00`);
+      return pdDate < today;
+    })
+    .reverse();
+
   const activePd = activePin != null ? filtered.find(p => p.id === activePin) : null;
   const isPreviewingApp = obStep === 4;
   const goingDates = allDates.filter(pd => joined[pd.id] === true || pd._joined);
   const hostingDates = allDates.filter(pd => pd._hostId === session?.user?.id || created.some(c => c.id === pd.id));
+
+  const pastDates = allDates
+    .filter(pd => {
+      if (!pd.dateStr) return false;
+      const pdDate = new Date(`${pd.dateStr}T12:00:00`);
+      if (pdDate >= today) return false;
+      const imGoing = joined[pd.id] === true || pd._joined;
+      const imHosting =
+        pd._hostId === session?.user?.id || created.some(c => c.id === pd.id);
+      return imGoing || imHosting;
+    })
+    .sort((a, b) => String(b.dateStr).localeCompare(String(a.dateStr)));
 
   const toggleTown = id => setActiveTowns(t => t.includes(id) ? (t.length > 1 ? t.filter(x=>x!==id) : t) : [...t, id]);
 
@@ -1766,9 +1883,12 @@ export default function App() {
         featuredVenues={featuredVenues}
         allDates={allDates}
         filtered={filtered}
+        upcomingFiltered={upcomingFiltered}
+        pastFiltered={pastFiltered}
         activePd={activePd}
         goingDates={goingDates}
         hostingDates={hostingDates}
+        pastDates={pastDates}
         isCreateDisabled={isCreateDisabled}
         submitHelper={submitHelper}
         handleCreate={handleCreate}

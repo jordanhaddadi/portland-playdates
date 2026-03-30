@@ -3,6 +3,7 @@ export function MyDatesView({
   setTab,
   goingDates,
   hostingDates,
+  pastDates,
   onOpenDetail,
   onBrowsePlaydates,
   onHostOne,
@@ -11,15 +12,35 @@ export function MyDatesView({
 }) {
   const goingCount = goingDates.length;
   const hostingCount = hostingDates.length;
+  const pastCount = pastDates.length;
 
-  const activeDates = tab === "going" ? goingDates : hostingDates;
-  const emptyEmoji = tab === "going" ? "🌳" : "🌟";
-  const emptyTitle = tab === "going" ? "No playdates yet!" : "You have not hosted yet!";
+  const activeDates =
+    tab === "going"
+      ? goingDates
+      : tab === "hosting"
+        ? hostingDates
+        : pastDates;
+
+  const emptyEmoji =
+    tab === "going" ? "🌳" : tab === "hosting" ? "🌟" : "📜";
+  const emptyTitle =
+    tab === "going"
+      ? "No playdates yet!"
+      : tab === "hosting"
+        ? "You have not hosted yet!"
+        : "No past playdates yet";
   const emptySub =
     tab === "going"
       ? "Browse nearby playdates and tap Join to save them here."
-      : "Ready to bring Portland parents together?";
-  const sectionLabel = tab === "going" ? "Your upcoming playdates" : "Playdates you are hosting";
+      : tab === "hosting"
+        ? "Ready to bring Portland parents together?"
+        : "Playdates you joined or hosted will show here after they happen.";
+  const sectionLabel =
+    tab === "going"
+      ? "Your upcoming playdates"
+      : tab === "hosting"
+        ? "Playdates you are hosting"
+        : "Past playdates";
 
   return (
     <>
@@ -30,6 +51,9 @@ export function MyDatesView({
           </button>
           <button className={`dates-tab ${tab === "hosting" ? "active" : ""}`} onClick={() => setTab("hosting")}>
             Hosting <span className="dates-count">({hostingCount})</span>
+          </button>
+          <button className={`dates-tab ${tab === "past" ? "active" : ""}`} onClick={() => setTab("past")}>
+            Past <span className="dates-count">({pastCount})</span>
           </button>
         </div>
       </div>
@@ -59,11 +83,11 @@ export function MyDatesView({
                 <button className="ghost-btn" onClick={e => { e.stopPropagation(); onCancelGoing(pd.id); }}>
                   Cancel
                 </button>
-              ) : (
+              ) : tab === "hosting" ? (
                 <button className="ghost-btn" onClick={e => { e.stopPropagation(); onRemoveHosting(pd.id); }}>
                   Remove
                 </button>
-              )}
+              ) : null}
             </div>
           ))}
         </div>
@@ -71,4 +95,3 @@ export function MyDatesView({
     </>
   );
 }
-
