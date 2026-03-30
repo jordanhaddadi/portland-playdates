@@ -1556,6 +1556,14 @@ export const styles = `
   .date-venue { font-size: 11px; color: var(--ocean); margin-top: 2px; }
   .ghost-btn { background: none; border: 1.5px solid var(--border); border-radius: 100px; padding: 6px 12px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
   .ghost-btn:hover { border-color: var(--terracotta); color: var(--terracotta); }
+  .dates-happened-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+  }
 
   /* ── PREVIEW MODAL ── */
   .preview-modal { width: 100%; max-width: 420px; background: var(--warm-white); border-radius: 28px 28px 0 0; padding: 32px 28px 48px; animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); text-align: center; }

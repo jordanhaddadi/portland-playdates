@@ -1205,7 +1205,13 @@ export default function App() {
 
   const activePd = activePin != null ? filtered.find(p => p.id === activePin) : null;
   const isPreviewingApp = obStep === 4;
-  const goingDates = allDates.filter(pd => joined[pd.id] === true || pd._joined);
+  const goingDates = allDates.filter(pd => {
+    const isGoing = joined[pd.id] === true || pd._joined;
+    if (!isGoing) return false;
+    if (!pd.dateStr) return true;
+    const pdDate = new Date(`${pd.dateStr}T12:00:00`);
+    return pdDate >= today;
+  });
   const hostingDates = allDates.filter(pd => pd._hostId === session?.user?.id || created.some(c => c.id === pd.id));
 
   const pastDates = allDates

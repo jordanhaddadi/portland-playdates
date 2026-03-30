@@ -1,3 +1,9 @@
+function isPast(pd) {
+  if (!pd.dateStr) return false;
+  const d = new Date(`${pd.dateStr}T12:00:00`);
+  return d < new Date();
+}
+
 export function MyDatesView({
   tab,
   setTab,
@@ -25,13 +31,13 @@ export function MyDatesView({
     tab === "going" ? "🌳" : tab === "hosting" ? "🌟" : "📜";
   const emptyTitle =
     tab === "going"
-      ? "No playdates yet!"
+      ? "No upcoming playdates"
       : tab === "hosting"
         ? "You have not hosted yet!"
         : "No past playdates yet";
   const emptySub =
     tab === "going"
-      ? "Browse nearby playdates and tap Join to save them here."
+      ? "When you join a playdate it will show up here. Check the Past tab to see your history."
       : tab === "hosting"
         ? "Ready to bring Portland parents together?"
         : "Playdates you joined or hosted will show here after they happen.";
@@ -72,7 +78,15 @@ export function MyDatesView({
         <div className="dates-section">
           <div className="section-title" style={{ marginBottom: 12 }}>{sectionLabel}</div>
           {activeDates.map(pd => (
-            <div key={pd.id} className="date-row" onClick={() => onOpenDetail(pd)}>
+            <div
+              key={pd.id}
+              className="date-row"
+              onClick={() => onOpenDetail(pd)}
+              style={{
+                ...(tab === "hosting" && isPast(pd) ? { opacity: 0.5 } : {}),
+                ...(tab === "past" ? { opacity: 0.6 } : {}),
+              }}
+            >
               <div className="date-emoji" style={{ background: pd.bg }}>{pd.emoji}</div>
               <div className="date-mid">
                 <div className="date-title">{pd.title}</div>
@@ -84,9 +98,15 @@ export function MyDatesView({
                   Cancel
                 </button>
               ) : tab === "hosting" ? (
-                <button className="ghost-btn" onClick={e => { e.stopPropagation(); onRemoveHosting(pd.id); }}>
-                  Remove
-                </button>
+                isPast(pd) ? (
+                  <span className="dates-happened-label">
+                    Happened
+                  </span>
+                ) : (
+                  <button className="ghost-btn" onClick={e => { e.stopPropagation(); onRemoveHosting(pd.id); }}>
+                    Remove
+                  </button>
+                )
               ) : null}
             </div>
           ))}
