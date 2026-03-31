@@ -739,7 +739,7 @@ export const styles = `
   .save-venue-btn { width: 100%; background: var(--ocean); color: white; border: none; border-radius: 12px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
   .save-venue-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
 
-  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; margin-top: 0; margin-bottom: 12px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; margin-bottom: 12px; }
   .section-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; }
   .see-all { font-size: 13px; font-weight: 500; color: var(--terracotta); cursor: pointer; background: none; border: none; }
   .cards { padding: 0 24px; display: flex; flex-direction: column; gap: 13px; margin-bottom: 50px; }

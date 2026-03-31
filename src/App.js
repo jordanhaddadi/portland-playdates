@@ -814,9 +814,8 @@ function MainApp({
 
             {farAwayFiltered.length > 0 && (
               <>
-                <div className="section-header" style={{ marginTop: 15 }}>
+                <div className="section-header" style={{ marginTop: 28 }}>
                   <div className="worth-drive-header">
-                    <span className="worth-drive-icon">🚗</span>
                     <div>
                       <div className="section-title">
                         Worth the drive
@@ -905,7 +904,7 @@ function MainApp({
 
             {pastFiltered.length > 0 && (
               <>
-                <div className="section-header" style={{ marginTop: 8 }}>
+                <div className="section-header" style={{ marginTop: 48 }}>
                   <div className="section-title" style={{ color: "var(--muted)" }}>
                     Past playdates
                   </div>
