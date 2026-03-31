@@ -201,7 +201,7 @@ function MainApp({
   myDatesTab, setMyDatesTab, showToast, setShowToast,
   setDbPlaydates,
   setDbRsvps,
-  allVenues, featuredVenues, allDates, filtered, upcomingFiltered, pastFiltered, activePd, goingDates, hostingDates, pastDates,
+  allVenues, featuredVenues, allDates, filtered, upcomingFiltered, pastFiltered, farAwayFiltered, activePd, goingDates, hostingDates, pastDates,
   isCreateDisabled, submitHelper, handleCreate, saveNewVenue,
   handleShare, topbarCopied,
   handleRestart,
@@ -812,6 +812,97 @@ function MainApp({
               )}
             </div>
 
+            {farAwayFiltered.length > 0 && (
+              <>
+                <div className="section-header" style={{ marginTop: 15 }}>
+                  <div className="worth-drive-header">
+                    <span className="worth-drive-icon">🚗</span>
+                    <div>
+                      <div className="section-title">
+                        Worth the drive
+                      </div>
+                      <div className="worth-drive-sub">
+                        A little further but worth it
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="cards worth-drive-cards">
+                  {farAwayFiltered.map(pd => (
+                    <div key={pd.id} className="card" onClick={() => setShowDetail(pd)}>
+                      <div className="card-img" style={{
+                        background: pd.cover_photo_url ? "none" : pd.bg
+                      }}>
+                        {pd.cover_photo_url ? (
+                          <img
+                            src={pd.cover_photo_url}
+                            alt={pd.title}
+                            className="card-cover-photo"
+                          />
+                        ) : (
+                          <div className="card-emoji">{pd.emoji}</div>
+                        )}
+                        {pd.comingSoon && <div className="card-comingsoon">Coming Soon</div>}
+                        {pd.isPartnerVenue && (
+                          <div className="card-partner-badge">
+                            ⭐ Partner venue
+                          </div>
+                        )}
+                        {pd.isReal && !pd.comingSoon && (
+                          <div className="card-weather card-real-badge">
+                            {weatherCache[pd.dateStr]
+                              ? weatherCache[pd.dateStr]
+                              : `📍 ${(() => {
+                                  const venueMatch = allVenues.find(
+                                    v => v.name?.toLowerCase() === pd.venue?.toLowerCase()
+                                  );
+                                  return venueMatch?.town || pd.town || "Greater Portland";
+                                })()}`
+                            }
+                          </div>
+                        )}
+                      </div>
+                      <div className="card-body">
+                        <div className="card-tags">
+                          <span className="tag tag-age">👶 Ages {pd.ages.replace("Ages ", "")}</span>
+                          <span className="tag tag-venue">📍 {pd.venue}</span>
+                        </div>
+                        <h3>{pd.title}</h3>
+                        {pd._isDb && (
+                          <div className="card-host-line">
+                            Hosted by {pd.hostName || "Host"}
+                          </div>
+                        )}
+                        <div className="card-meta">🕐 {pd.date}</div>
+                        <div className="card-footer">
+                          <div className="attendees">
+                            <CardAttendees pd={pd} />
+                            <span className="attendee-text">{pd.count} going</span>
+                          </div>
+                          <button
+                            className={`join-btn ${((pd._isDb && pd._hostId === session?.user?.id) || (pd._isDb ? pd._joined : joined[pd.id])) ? "joined" : ""}`}
+                            onClick={e => {
+                              e.stopPropagation();
+                              if (pd._isDb) {
+                                if (pd._hostId === session?.user?.id) return;
+                                handleToggleJoin(pd.id);
+                              } else {
+                                setJoined(j => ({ ...j, [pd.id]: !j[pd.id] }));
+                              }
+                            }}
+                          >
+                            {(pd._isDb && pd._hostId === session?.user?.id)
+                              ? "Hosting"
+                              : ((pd._isDb ? pd._joined : joined[pd.id]) ? "✓ Going!" : "Join")}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
             {pastFiltered.length > 0 && (
               <>
                 <div className="section-header" style={{ marginTop: 8 }}>
@@ -1210,7 +1301,9 @@ export default function App() {
       title: pd.title,
       venue: pd.venue || "TBD venue",
       addr: pd.addr || "",
-      hood: pd.hood || pd.town || "Portland",
+      hood: pd.town?.includes("FARTHER")
+        ? (pd.addr?.split(",")[1]?.trim() || "Further away")
+        : (pd.hood || pd.town || "Portland"),
       ages: pd.ages || "All ages",
       date: formatPlaydateTime(pd.date, pd.time),
       dateStr: pd.date,
@@ -1233,6 +1326,7 @@ export default function App() {
           (v.name || "").toLowerCase() === (pd.venue || "").toLowerCase()
       ),
       description: pd.description || "",
+      event_link: pd.event_link || null,
       x: pin.x,
       y: pin.y,
       comingSoon: false,
@@ -1255,22 +1349,50 @@ export default function App() {
     return townNameToId[value] || value;
   };
 
+  const isLocalTown = (town) => {
+    if (!town) return false;
+    const normalized = town.toLowerCase().trim();
+    const localTowns = [
+      "portland",
+      ...TOWNS_NEARBY.map(t => t.name.toLowerCase().trim()),
+      ...TOWNS_NEARBY.map(t => t.id.toLowerCase().trim()),
+    ];
+    return localTowns.some(t => normalized.includes(t) || t.includes(normalized));
+  };
+
   const allDates =
     mappedDbPlaydates.length > 0
       ? [...mappedDbPlaydates, ...created]
       : [...mappedDbPlaydates, ...created, ...PLAYDATES];
-  const filtered = allDates.filter(pd => {
-    const townId = normalizeTownId(pd.town);
-    return activeTowns.includes(townId);
-  });
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const upcomingFiltered = filtered.filter(pd => {
+  const allUpcoming = allDates.filter(pd => {
+    const isFartherTag =
+      pd.town === "*FARTHER AWAY*" || pd.town?.includes("FARTHER");
+    if (isFartherTag) return false;
     if (!pd.dateStr) return true;
     const pdDate = new Date(`${pd.dateStr}T12:00:00`);
     return pdDate >= today;
+  });
+
+  const upcomingFiltered = allUpcoming.filter(pd =>
+    activeTowns.includes(normalizeTownId(pd.town)) &&
+    isLocalTown(pd.town)
+  );
+
+  const farAwayFiltered = allUpcoming.filter(pd =>
+    !isLocalTown(pd.town) &&
+    pd.dateStr
+  );
+
+  const filtered = allDates.filter(pd => {
+    const isFartherTag =
+      pd.town === "*FARTHER AWAY*" || pd.town?.includes("FARTHER");
+    if (isFartherTag) return false;
+    const townId = normalizeTownId(pd.town);
+    return activeTowns.includes(townId) && isLocalTown(pd.town);
   });
 
   const pastFiltered = filtered
@@ -1969,6 +2091,7 @@ export default function App() {
         filtered={filtered}
         upcomingFiltered={upcomingFiltered}
         pastFiltered={pastFiltered}
+        farAwayFiltered={farAwayFiltered}
         activePd={activePd}
         goingDates={goingDates}
         hostingDates={hostingDates}

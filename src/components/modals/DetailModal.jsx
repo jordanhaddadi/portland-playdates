@@ -53,6 +53,19 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
               </div>
             )}
             <div className="detail-row"><span className="detail-icon">💬</span><span>{showDetail.description}</span></div>
+            {showDetail?.event_link && (
+              <div className="detail-event-link">
+                <a
+                  href={showDetail.event_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="detail-event-link-btn"
+                  onClick={e => e.stopPropagation()}
+                >
+                  Register or get tickets →
+                </a>
+              </div>
+            )}
             <div className="detail-row">
               <span className="detail-icon">👥</span>
               <div>

@@ -752,6 +752,28 @@ export const styles = `
     margin-top: 0;
     margin-bottom: 40px;
   }
+  .worth-drive-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+  }
+
+  .worth-drive-icon {
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .worth-drive-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    margin-top: 2px;
+  }
+
+  .worth-drive-cards {
+    margin-bottom: 8px;
+  }
   .card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(30,43,47,0.1); }
   .card-img { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 42px; position: relative; }
   .card-cover-photo {
