@@ -206,6 +206,11 @@ function MainApp({
   handleShare, topbarCopied,
   handleRestart,
   weatherCache,
+  installPrompt,
+  showInstallBanner,
+  setShowInstallBanner,
+  showIosBanner,
+  setShowIosBanner,
 }) {
   const isAuthed = !!session?.user?.id;
   if (enableAuth && !authReady) {
@@ -892,6 +897,57 @@ function MainApp({
           </>
         )}
 
+        {showInstallBanner && (
+          <div className="install-banner">
+            <div className="install-banner-text">
+              <strong>Add to Home Screen</strong>
+              <span>Get the full app experience</span>
+            </div>
+            <div className="install-banner-actions">
+              <button
+                type="button"
+                className="install-btn"
+                onClick={async () => {
+                  if (installPrompt) {
+                    await installPrompt.prompt();
+                    setShowInstallBanner(false);
+                  }
+                }}
+              >
+                Install
+              </button>
+              <button
+                type="button"
+                className="install-dismiss"
+                onClick={() => setShowInstallBanner(false)}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showIosBanner && (
+          <div className="install-banner">
+            <div className="install-banner-text">
+              <strong>Add to Home Screen ⚓</strong>
+              <span>
+                {`Tap the share icon below then "Add to Home Screen"`}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="install-dismiss"
+              onClick={() => {
+                localStorage.setItem("ppd_ios_install_dismissed", "true");
+                setShowIosBanner(false);
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* BOTTOM NAV */}
         <div className="bottom-nav">
           {[{id:"home",icon:"🏠",label:"Home"},{id:"search",icon:"🗺️",label:"Map"}].map(n => (
@@ -1043,6 +1099,9 @@ export default function App() {
   });
   const [myDatesTab, setMyDatesTab] = useState("going");
   const [showToast, setShowToast] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showIosBanner, setShowIosBanner] = useState(false);
   const hasFetchedRef = useRef(false);
   const hasLoadedProfileRef = useRef(false);
   const isCreatingRef = useRef(false);
@@ -1081,6 +1140,25 @@ export default function App() {
     }
     setActiveNav(nav);
   };
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  useEffect(() => {
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+    const dismissed = localStorage.getItem("ppd_ios_install_dismissed");
+    if (isIos && !isStandalone && !dismissed) {
+      setShowIosBanner(true);
+    }
+  }, []);
 
   const mappedDbVenues = dbVenues.map(v => ({
     name: v.name,
@@ -1903,6 +1981,11 @@ export default function App() {
         topbarCopied={topbarCopied}
         handleRestart={handleRestart}
         weatherCache={weatherCache}
+        installPrompt={installPrompt}
+        showInstallBanner={showInstallBanner}
+        setShowInstallBanner={setShowInstallBanner}
+        showIosBanner={showIosBanner}
+        setShowIosBanner={setShowIosBanner}
       />} />
     </Routes>
   );

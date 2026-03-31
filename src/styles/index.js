@@ -1565,6 +1565,72 @@ export const styles = `
     border: 1px solid var(--border);
   }
 
+  .install-banner {
+    position: fixed;
+    bottom: 80px;
+    left: 16px;
+    right: 16px;
+    background: var(--charcoal);
+    color: white;
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 999;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: obFadeIn 0.3s ease;
+  }
+
+  .install-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+  }
+
+  .install-banner-text strong {
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .install-banner-text span {
+    font-size: 12px;
+    opacity: 0.7;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .install-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .install-btn {
+    background: var(--ocean);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+
+  .install-dismiss {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+
   /* ── PREVIEW MODAL ── */
   .preview-modal { width: 100%; max-width: 420px; background: var(--warm-white); border-radius: 28px 28px 0 0; padding: 32px 28px 48px; animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); text-align: center; }
   .preview-modal-emoji { font-size: 44px; display: block; margin-bottom: 14px; }
