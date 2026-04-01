@@ -191,6 +191,34 @@ export function CreateModal({
         </div>
 
         <div className="create-field">
+          <label className="create-label">
+            Capacity
+            <span className="create-optional">optional</span>
+          </label>
+          <input
+            type="number"
+            className="create-input"
+            placeholder="Max number of families (e.g. 8)"
+            min="2"
+            max="50"
+            value={formData.max_kids || ""}
+            onChange={e => setFormData(f => ({
+              ...f, max_kids: e.target.value
+            }))}
+          />
+          <p style={{
+            fontSize: 12,
+            color: 'var(--muted)',
+            margin: '4px 0 0',
+            fontFamily: 'DM Sans, sans-serif',
+            lineHeight: 1.5,
+          }}>
+            Leave blank for unlimited. When full a
+            "Full" badge will appear on the card.
+          </p>
+        </div>
+
+        <div className="create-field">
           <label className="create-label">Repeats</label>
           <div className="recurring-toggle">
             <button

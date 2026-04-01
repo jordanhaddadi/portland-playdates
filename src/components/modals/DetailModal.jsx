@@ -66,6 +66,16 @@ export function DetailModal({ showDetail, setShowDetail, joined, setJoined, onTo
                 </a>
               </div>
             )}
+            {showDetail?.max_kids && (
+              <div className="detail-capacity-row">
+                <span>👥</span>
+                <span>
+                  {showDetail.count >= showDetail.max_kids
+                    ? "This playdate is full"
+                    : `${showDetail.max_kids - showDetail.count} of ${showDetail.max_kids} spots remaining`}
+                </span>
+              </div>
+            )}
             <div className="detail-row">
               <span className="detail-icon">👥</span>
               <div>

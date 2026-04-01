@@ -213,6 +213,16 @@ function MainApp({
   setShowIosBanner,
 }) {
   const isAuthed = !!session?.user?.id;
+  const isAtCapacity = (pd) => {
+    if (!pd.max_kids) return false;
+    return pd.count >= pd.max_kids;
+  };
+
+  const spotsLeft = (pd) => {
+    if (!pd.max_kids) return null;
+    const remaining = pd.max_kids - pd.count;
+    return remaining > 0 ? remaining : 0;
+  };
   if (enableAuth && !authReady) {
     return (
       <>
@@ -748,6 +758,11 @@ function MainApp({
                         ⭐ Partner venue
                       </div>
                     )}
+                    {isAtCapacity(pd) && (
+                      <div className="card-full-badge">
+                        Full
+                      </div>
+                    )}
                     {pd.isReal && !pd.comingSoon && (
                       <div className="card-weather card-real-badge">
                         {weatherCache[pd.dateStr]
@@ -779,8 +794,14 @@ function MainApp({
                         <CardAttendees pd={pd} />
                         <span className="attendee-text">{pd.count} going</span>
                       </div>
+                      {pd.max_kids && !isAtCapacity(pd) && (
+                        <div className="card-spots-left">
+                          {spotsLeft(pd)} spot{spotsLeft(pd) === 1 ? "" : "s"} left
+                        </div>
+                      )}
                       <button
-                        className={`join-btn ${((pd._isDb && pd._hostId === session?.user?.id) || (pd._isDb ? pd._joined : joined[pd.id])) ? "joined" : ""}`}
+                        className={`join-btn ${isAtCapacity(pd) && pd._hostId !== session?.user?.id ? "full" : ((pd._isDb && pd._hostId === session?.user?.id) || (pd._isDb ? pd._joined : joined[pd.id])) ? "joined" : ""}`}
+                        disabled={isAtCapacity(pd) && pd._hostId !== session?.user?.id && !(pd._isDb ? pd._joined : joined[pd.id])}
                         onClick={e => {
                           e.stopPropagation();
                           if (pd._isDb) {
@@ -791,7 +812,9 @@ function MainApp({
                           }
                         }}
                       >
-                        {(pd._isDb && pd._hostId === session?.user?.id)
+                        {isAtCapacity(pd) && pd._hostId !== session?.user?.id && !(pd._isDb ? pd._joined : joined[pd.id])
+                          ? "Full"
+                          : (pd._isDb && pd._hostId === session?.user?.id)
                           ? "Hosting"
                           : ((pd._isDb ? pd._joined : joined[pd.id]) ? "✓ Going!" : "Join")}
                       </button>
@@ -847,6 +870,11 @@ function MainApp({
                             ⭐ Partner venue
                           </div>
                         )}
+                        {isAtCapacity(pd) && (
+                          <div className="card-full-badge">
+                            Full
+                          </div>
+                        )}
                         {pd.isReal && !pd.comingSoon && (
                           <div className="card-weather card-real-badge">
                             {weatherCache[pd.dateStr]
@@ -878,8 +906,14 @@ function MainApp({
                             <CardAttendees pd={pd} />
                             <span className="attendee-text">{pd.count} going</span>
                           </div>
+                          {pd.max_kids && !isAtCapacity(pd) && (
+                            <div className="card-spots-left">
+                              {spotsLeft(pd)} spot{spotsLeft(pd) === 1 ? "" : "s"} left
+                            </div>
+                          )}
                           <button
-                            className={`join-btn ${((pd._isDb && pd._hostId === session?.user?.id) || (pd._isDb ? pd._joined : joined[pd.id])) ? "joined" : ""}`}
+                            className={`join-btn ${isAtCapacity(pd) && pd._hostId !== session?.user?.id ? "full" : ((pd._isDb && pd._hostId === session?.user?.id) || (pd._isDb ? pd._joined : joined[pd.id])) ? "joined" : ""}`}
+                            disabled={isAtCapacity(pd) && pd._hostId !== session?.user?.id && !(pd._isDb ? pd._joined : joined[pd.id])}
                             onClick={e => {
                               e.stopPropagation();
                               if (pd._isDb) {
@@ -890,7 +924,9 @@ function MainApp({
                               }
                             }}
                           >
-                            {(pd._isDb && pd._hostId === session?.user?.id)
+                            {isAtCapacity(pd) && pd._hostId !== session?.user?.id && !(pd._isDb ? pd._joined : joined[pd.id])
+                              ? "Full"
+                              : (pd._isDb && pd._hostId === session?.user?.id)
                               ? "Hosting"
                               : ((pd._isDb ? pd._joined : joined[pd.id]) ? "✓ Going!" : "Join")}
                           </button>
@@ -1174,7 +1210,7 @@ export default function App() {
   const [showAddVenue, setShowAddVenue] = useState(false);
   const [newVenue, setNewVenue] = useState({ name:"", addr:"", type:"", perks:[] });
   const [userVenues, setUserVenues] = useState([]);
-  const [formData, setFormData] = useState({ title: "", date: "", time: "", description: "" });
+  const [formData, setFormData] = useState({ title: "", date: "", time: "", description: "", max_kids: "" });
   const [coverPhoto, setCoverPhoto] = useState(null);
   const [coverPhotoPreview, setCoverPhotoPreview] = useState(null);
   const [isRecurring, setIsRecurring] = useState(false);
@@ -1326,6 +1362,7 @@ export default function App() {
       ),
       description: pd.description || "",
       event_link: pd.event_link || null,
+      max_kids: pd.max_kids || null,
       x: pin.x,
       y: pin.y,
       comingSoon: false,
@@ -1879,7 +1916,7 @@ export default function App() {
         ages: formatAgeRange(selectedAges),
         description: formData.description || "",
         emoji: v?.emoji || "🌟",
-        max_kids: null
+        max_kids: formData.max_kids ? parseInt(formData.max_kids) : null,
       };
 
       const generateDates = (startDate, frequency, count) => {
@@ -1959,7 +1996,7 @@ export default function App() {
       }
 
       setShowCreate(false);
-      setFormData({ title:"", date:"", time:"", description: "" });
+      setFormData({ title:"", date:"", time:"", description: "", max_kids: "" });
       setCoverPhoto(null);
       setCoverPhotoPreview(null);
       setIsRecurring(false);
@@ -1989,13 +2026,14 @@ export default function App() {
         count: 1,
         host: profile.name || "You",
         description: formData.description || "",
+        max_kids: formData.max_kids ? parseInt(formData.max_kids) : null,
         x: pin.x,
         y: pin.y,
       },
       ...p,
     ]);
     setShowCreate(false);
-    setFormData({ title:"", date:"", time:"", description: "" });
+    setFormData({ title:"", date:"", time:"", description: "", max_kids: "" });
     setCoverPhoto(null);
     setCoverPhotoPreview(null);
     setIsRecurring(false);
