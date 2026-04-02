@@ -21,79 +21,6 @@ import { TownsModal } from './components/modals/TownsModal';
 import { PreviewModal } from './components/modals/PreviewModal';
 import { PublicProfileModal } from "./components/modals/PublicProfileModal";
 
-const VENUE_COORDS = {
-  salud: { lat: 43.6661, lng: -70.2595 },
-  "182 marginal way": { lat: 43.6661, lng: -70.2595 },
-  "182 Marginal Way": { lat: 43.6661, lng: -70.2595 },
-  lambs: { lat: 43.6414, lng: -70.2805 },
-  "south portland": { lat: 43.6414, lng: -70.2805 },
-  "cape elizabeth": { lat: 43.6233, lng: -70.2001 },
-  scarborough: { lat: 43.5773, lng: -70.3242 },
-  "174 us-1, scarborough": { lat: 43.5773, lng: -70.3242 },
-  "3 stewart dr": { lat: 43.5773, lng: -70.3242 },
-  saco: { lat: 43.4996, lng: -70.4428 },
-  "163 buxton rd, saco": { lat: 43.4926, lng: -70.4489 },
-  biddeford: { lat: 43.4926, lng: -70.4489 },
-  "118 alfred street biddeford": { lat: 43.4926, lng: -70.4489 },
-  "135 pool st biddeford": { lat: 43.4751, lng: -70.4584 },
-  gorham: { lat: 43.6934, lng: -70.4428 },
-  gray: { lat: 43.8912, lng: -70.3311 },
-  limington: { lat: 43.7351, lng: -70.6897 },
-  limerick: { lat: 43.6815, lng: -70.7898 },
-  "steep falls": { lat: 43.749, lng: -70.6503 },
-  "north deering": { lat: 43.7012, lng: -70.2731 },
-  deering: { lat: 43.689, lng: -70.29 },
-  "east end": { lat: 43.662, lng: -70.244 },
-  munjoy: { lat: 43.662, lng: -70.244 },
-  "eastern prom": { lat: 43.662, lng: -70.244 },
-  "eastern promenade": { lat: 43.662, lng: -70.244 },
-  "west end": { lat: 43.656, lng: -70.268 },
-  "park ave": { lat: 43.689, lng: -70.29 },
-  "deering oaks": { lat: 43.689, lng: -70.29 },
-  bayside: { lat: 43.668, lng: -70.262 },
-  "98 portland st": { lat: 43.668, lng: -70.262 },
-  "bayside american": { lat: 43.668, lng: -70.262 },
-  "back cove": { lat: 43.675, lng: -70.28 },
-  baxter: { lat: 43.675, lng: -70.28 },
-  "payson park": { lat: 43.675, lng: -70.28 },
-  "downtown portland": { lat: 43.6561, lng: -70.2568 },
-  downtown: { lat: 43.6561, lng: -70.2568 },
-  "monument square": { lat: 43.6561, lng: -70.2568 },
-  "5 monument": { lat: 43.6561, lng: -70.2568 },
-  "free st": { lat: 43.6561, lng: -70.2568 },
-  "children's museum": { lat: 43.6561, lng: -70.2568 },
-  falmouth: { lat: 43.7295, lng: -70.241 },
-  "5 lunt rd": { lat: 43.7295, lng: -70.241 },
-  yarmouth: { lat: 43.8056, lng: -70.1897 },
-  westbrook: { lat: 43.6774, lng: -70.3717 },
-  willard: { lat: 43.6414, lng: -70.2805 },
-  "shore rd": { lat: 43.6414, lng: -70.2805 },
-  "mill creek": { lat: 43.6414, lng: -70.2805 },
-  "cottage rd": { lat: 43.6414, lng: -70.2805 },
-  "ferry beach": { lat: 43.4996, lng: -70.4428 },
-  "bayview rd": { lat: 43.4996, lng: -70.4428 },
-  "beach st": { lat: 43.4996, lng: -70.4428 },
-  "rotary park": { lat: 43.4996, lng: -70.4428 },
-  "371 main st": { lat: 43.4996, lng: -70.4428 },
-  "dyer library": { lat: 43.4996, lng: -70.4428 },
-  "774 portland rd": { lat: 43.4996, lng: -70.4428 },
-  funtown: { lat: 43.4996, lng: -70.4428 },
-  "hills beach": { lat: 43.4926, lng: -70.4489 },
-  "hills beach rd": { lat: 43.4926, lng: -70.4489 },
-  portland: { lat: 43.6615, lng: -70.2553 },
-};
-
-const getCoords = (addr, venueName) => {
-  if (!addr && !venueName) return null;
-  const haystack = (addr || "").toLowerCase();
-  const nameHay = (venueName || "").toLowerCase();
-  const match = Object.keys(VENUE_COORDS).find(k =>
-    haystack.includes(k.toLowerCase()) ||
-    nameHay.includes(k.toLowerCase())
-  );
-  return match ? VENUE_COORDS[match] : null;
-};
-
 const MAP_CENTER = { lat: 43.6615, lng: -70.2553 };
 
 const MAP_OPTIONS = {
@@ -670,7 +597,10 @@ function MainApp({
                   }}
                 >
                   {upcomingFiltered.map(pd => {
-                    const coords = getCoords(pd.addr, pd.venue);
+                    const coords =
+                      pd.lat && pd.lng
+                        ? { lat: pd.lat, lng: pd.lng }
+                        : null;
                     if (!coords) return null;
                     return (
                       <Marker
@@ -686,7 +616,8 @@ function MainApp({
                   })}
 
                   {allVenues.map((v, i) => {
-                    const coords = getCoords(v.addr, v.name);
+                    const coords =
+                      v.lat && v.lng ? { lat: v.lat, lng: v.lng } : null;
                     if (!coords) return null;
                     return (
                       <Marker
@@ -701,9 +632,14 @@ function MainApp({
                     );
                   })}
 
-                  {activePd && getCoords(activePd.addr, activePd.venue) && (
+                  {activePd &&
+                    activePd.lat &&
+                    activePd.lng && (
                     <InfoWindow
-                      position={getCoords(activePd.addr, activePd.venue)}
+                      position={{
+                        lat: activePd.lat,
+                        lng: activePd.lng,
+                      }}
                       onCloseClick={() => setActivePin(null)}
                     >
                       <div className="map-info-window" onClick={() => setShowDetail(activePd)} role="presentation">
@@ -716,11 +652,13 @@ function MainApp({
                   )}
 
                   {activeVenue && (() => {
-                    const vCoords = getCoords(activeVenue.addr, activeVenue.name);
-                    if (!vCoords) return null;
+                    if (!activeVenue.lat || !activeVenue.lng) return null;
                     return (
                       <InfoWindow
-                        position={vCoords}
+                        position={{
+                          lat: activeVenue.lat,
+                          lng: activeVenue.lng,
+                        }}
                         onCloseClick={() => setActiveVenue(null)}
                       >
                         <div className="map-info-window">
@@ -1403,6 +1341,78 @@ export default function App() {
     setActiveNav(nav);
   };
 
+  const searchPlaceCoords = async (query) => {
+    if (!query) return null;
+    try {
+      const encoded = encodeURIComponent(query + " Maine");
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY}&region=us&components=administrative_area:ME|country:US`
+      );
+      const data = await res.json();
+      if (data.status === "OK" && data.results?.[0]?.geometry?.location) {
+        console.log("Found coords for:", query, data.results[0].geometry.location);
+        return data.results[0].geometry.location;
+      }
+      console.warn("No results for:", query, data.status);
+    } catch (e) {
+      console.error("Place search failed:", e);
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const geocodeMissing = async () => {
+      let didUpdate = false;
+
+      for (const pd of dbPlaydates) {
+        if (pd.lat && pd.lng) continue;
+        const query = pd.addr
+          ? `${pd.venue || ""} ${pd.addr} Maine`.trim()
+          : `${pd.venue || ""} ${pd.town || ""} Maine`.trim();
+        if (!query.trim()) continue;
+        console.log("Searching for:", query);
+        const coords = await searchPlaceCoords(query);
+        if (coords) {
+          await supabase
+            .from("playdates")
+            .update({ lat: coords.lat, lng: coords.lng })
+            .eq("id", pd.id);
+          didUpdate = true;
+        }
+      }
+
+      for (const v of dbVenues) {
+        if (v.lat && v.lng) continue;
+        const query = v.addr
+          ? `${v.name} ${v.addr} Maine`.trim()
+          : `${v.name} ${v.town || ""} Maine`.trim();
+        if (!query.trim()) continue;
+        console.log("Searching venue:", query);
+        const coords = await searchPlaceCoords(query);
+        if (coords) {
+          await supabase
+            .from("venues")
+            .update({ lat: coords.lat, lng: coords.lng })
+            .eq("id", v.id);
+          didUpdate = true;
+        }
+      }
+
+      if (didUpdate) {
+        const [freshPds, freshVenues] = await Promise.all([
+          fetchPlaydates(),
+          fetchVenues(session.user.id),
+        ]);
+        setDbPlaydates(freshPds);
+        setDbVenues(freshVenues);
+      }
+    };
+
+    geocodeMissing();
+  }, [dbPlaydates, dbVenues, session]);
+
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
@@ -1429,6 +1439,9 @@ export default function App() {
     hood: v.hood || "",
     emoji: v.emoji || "📍",
     pending: v.status === "pending",
+    featured: v.featured === true,
+    lat: v.lat || null,
+    lng: v.lng || null,
   }));
 
   const allVenues = [...PORTLAND_VENUES, ...mappedDbVenues, ...userVenues];
@@ -1499,6 +1512,8 @@ export default function App() {
       description: pd.description || "",
       event_link: pd.event_link || null,
       max_kids: pd.max_kids || null,
+      lat: pd.lat || null,
+      lng: pd.lng || null,
       x: pin.x,
       y: pin.y,
       comingSoon: false,
