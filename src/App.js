@@ -662,7 +662,7 @@ function MainApp({
               padding: "6px 24px 0",
               lineHeight: 1.5
             }}>
-              Full Greater Portland is here!!!
+              Full Greater Portland map is live!!!
             </div>
             <div style={{ padding:"20px 24px 0" }}>
               <div className="section-title" style={{ marginBottom:14 }}>All Playdates</div>
