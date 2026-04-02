@@ -22,18 +22,74 @@ import { PreviewModal } from './components/modals/PreviewModal';
 import { PublicProfileModal } from "./components/modals/PublicProfileModal";
 
 const VENUE_COORDS = {
+  salud: { lat: 43.6661, lng: -70.2595 },
+  "182 marginal way": { lat: 43.6661, lng: -70.2595 },
   "182 Marginal Way": { lat: 43.6661, lng: -70.2595 },
-  "174 US-1, Scarborough": { lat: 43.5773, lng: -70.3242 },
-  "163 Buxton Rd, Saco": { lat: 43.4926, lng: -70.4489 },
-  "118 Alfred Street Biddeford": { lat: 43.4926, lng: -70.4489 },
-  "135 Pool St Biddeford": { lat: 43.4751, lng: -70.4584 },
-  "3 Stewart Dr": { lat: 43.5773, lng: -70.3242 },
+  lambs: { lat: 43.6414, lng: -70.2805 },
+  "south portland": { lat: 43.6414, lng: -70.2805 },
+  "cape elizabeth": { lat: 43.6233, lng: -70.2001 },
+  scarborough: { lat: 43.5773, lng: -70.3242 },
+  "174 us-1, scarborough": { lat: 43.5773, lng: -70.3242 },
+  "3 stewart dr": { lat: 43.5773, lng: -70.3242 },
+  saco: { lat: 43.4996, lng: -70.4428 },
+  "163 buxton rd, saco": { lat: 43.4926, lng: -70.4489 },
+  biddeford: { lat: 43.4926, lng: -70.4489 },
+  "118 alfred street biddeford": { lat: 43.4926, lng: -70.4489 },
+  "135 pool st biddeford": { lat: 43.4751, lng: -70.4584 },
+  gorham: { lat: 43.6934, lng: -70.4428 },
+  gray: { lat: 43.8912, lng: -70.3311 },
+  limington: { lat: 43.7351, lng: -70.6897 },
+  limerick: { lat: 43.6815, lng: -70.7898 },
+  "steep falls": { lat: 43.749, lng: -70.6503 },
+  "north deering": { lat: 43.7012, lng: -70.2731 },
+  deering: { lat: 43.689, lng: -70.29 },
+  "east end": { lat: 43.662, lng: -70.244 },
+  munjoy: { lat: 43.662, lng: -70.244 },
+  "eastern prom": { lat: 43.662, lng: -70.244 },
+  "eastern promenade": { lat: 43.662, lng: -70.244 },
+  "west end": { lat: 43.656, lng: -70.268 },
+  "park ave": { lat: 43.689, lng: -70.29 },
+  "deering oaks": { lat: 43.689, lng: -70.29 },
+  bayside: { lat: 43.668, lng: -70.262 },
+  "98 portland st": { lat: 43.668, lng: -70.262 },
+  "bayside american": { lat: 43.668, lng: -70.262 },
+  "back cove": { lat: 43.675, lng: -70.28 },
+  baxter: { lat: 43.675, lng: -70.28 },
+  "payson park": { lat: 43.675, lng: -70.28 },
+  "downtown portland": { lat: 43.6561, lng: -70.2568 },
+  downtown: { lat: 43.6561, lng: -70.2568 },
+  "monument square": { lat: 43.6561, lng: -70.2568 },
+  "5 monument": { lat: 43.6561, lng: -70.2568 },
+  "free st": { lat: 43.6561, lng: -70.2568 },
+  "children's museum": { lat: 43.6561, lng: -70.2568 },
+  falmouth: { lat: 43.7295, lng: -70.241 },
+  "5 lunt rd": { lat: 43.7295, lng: -70.241 },
+  yarmouth: { lat: 43.8056, lng: -70.1897 },
+  westbrook: { lat: 43.6774, lng: -70.3717 },
+  willard: { lat: 43.6414, lng: -70.2805 },
+  "shore rd": { lat: 43.6414, lng: -70.2805 },
+  "mill creek": { lat: 43.6414, lng: -70.2805 },
+  "cottage rd": { lat: 43.6414, lng: -70.2805 },
+  "ferry beach": { lat: 43.4996, lng: -70.4428 },
+  "bayview rd": { lat: 43.4996, lng: -70.4428 },
+  "beach st": { lat: 43.4996, lng: -70.4428 },
+  "rotary park": { lat: 43.4996, lng: -70.4428 },
+  "371 main st": { lat: 43.4996, lng: -70.4428 },
+  "dyer library": { lat: 43.4996, lng: -70.4428 },
+  "774 portland rd": { lat: 43.4996, lng: -70.4428 },
+  funtown: { lat: 43.4996, lng: -70.4428 },
+  "hills beach": { lat: 43.4926, lng: -70.4489 },
+  "hills beach rd": { lat: 43.4926, lng: -70.4489 },
+  portland: { lat: 43.6615, lng: -70.2553 },
 };
 
-const getCoords = (addr) => {
-  if (!addr) return null;
+const getCoords = (addr, venueName) => {
+  if (!addr && !venueName) return null;
+  const haystack = (addr || "").toLowerCase();
+  const nameHay = (venueName || "").toLowerCase();
   const match = Object.keys(VENUE_COORDS).find(k =>
-    addr.toLowerCase().includes(k.toLowerCase())
+    haystack.includes(k.toLowerCase()) ||
+    nameHay.includes(k.toLowerCase())
   );
   return match ? VENUE_COORDS[match] : null;
 };
@@ -270,6 +326,7 @@ function MainApp({
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY || "",
   });
+  const [activeVenue, setActiveVenue] = useState(null);
   const isAuthed = !!session?.user?.id;
   const isAtCapacity = (pd) => {
     if (!pd.max_kids) return false;
@@ -607,32 +664,46 @@ function MainApp({
                   center={MAP_CENTER}
                   zoom={11}
                   options={MAP_OPTIONS}
-                  onClick={() => setActivePin(null)}
+                  onClick={() => {
+                    setActivePin(null);
+                    setActiveVenue(null);
+                  }}
                 >
                   {upcomingFiltered.map(pd => {
-                    const coords = getCoords(pd.addr);
+                    const coords = getCoords(pd.addr, pd.venue);
                     if (!coords) return null;
                     return (
                       <Marker
                         key={pd.id}
                         position={coords}
-                        onClick={() => setActivePin(pd.id)}
+                        onClick={() => {
+                          setActiveVenue(null);
+                          setActivePin(pd.id);
+                        }}
                         icon={markerIconWithSize(playdateMarkerIcon(pd.emoji), 36, 44)}
                       />
                     );
                   })}
 
-                  {allVenues.filter(v => v.addr).map((v, i) => (
-                    <Marker
-                      key={`venue-${i}`}
-                      position={getCoords(v.addr) || MAP_CENTER}
-                      icon={markerIconWithSize(venueMarkerIcon(v.emoji), 28, 28)}
-                    />
-                  ))}
+                  {allVenues.map((v, i) => {
+                    const coords = getCoords(v.addr, v.name);
+                    if (!coords) return null;
+                    return (
+                      <Marker
+                        key={`venue-${v.name}-${i}`}
+                        position={coords}
+                        onClick={() => {
+                          setActivePin(null);
+                          setActiveVenue(v);
+                        }}
+                        icon={markerIconWithSize(venueMarkerIcon(v.emoji), 28, 28)}
+                      />
+                    );
+                  })}
 
-                  {activePd && getCoords(activePd.addr) && (
+                  {activePd && getCoords(activePd.addr, activePd.venue) && (
                     <InfoWindow
-                      position={getCoords(activePd.addr)}
+                      position={getCoords(activePd.addr, activePd.venue)}
                       onCloseClick={() => setActivePin(null)}
                     >
                       <div className="map-info-window" onClick={() => setShowDetail(activePd)} role="presentation">
@@ -643,6 +714,53 @@ function MainApp({
                       </div>
                     </InfoWindow>
                   )}
+
+                  {activeVenue && (() => {
+                    const vCoords = getCoords(activeVenue.addr, activeVenue.name);
+                    if (!vCoords) return null;
+                    return (
+                      <InfoWindow
+                        position={vCoords}
+                        onCloseClick={() => setActiveVenue(null)}
+                      >
+                        <div className="map-info-window">
+                          <div className="map-info-venue-emoji">
+                            {activeVenue.emoji}
+                          </div>
+                          <div className="map-info-title">
+                            {activeVenue.name}
+                          </div>
+                          {activeVenue.addr && (
+                            <div className="map-info-meta">
+                              {activeVenue.addr}
+                            </div>
+                          )}
+                          {activeVenue.town && (
+                            <div className="map-info-meta">
+                              {activeVenue.town}
+                              {activeVenue.hood ? ` · ${activeVenue.hood}` : ""}
+                            </div>
+                          )}
+                          {activeVenue.featured && (
+                            <div className="map-info-partner">
+                              ⭐ Partner venue
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            className="map-info-host-btn"
+                            onClick={() => {
+                              setActiveVenue(null);
+                              setSelectedVenue(activeVenue.name);
+                              setShowCreate(true);
+                            }}
+                          >
+                            Host a playdate here
+                          </button>
+                        </div>
+                      </InfoWindow>
+                    );
+                  })()}
                 </GoogleMap>
               )}
               <div className="map-count-badge">📍 {upcomingFiltered.length} playdates</div>

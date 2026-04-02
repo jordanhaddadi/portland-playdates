@@ -615,6 +615,30 @@ export const styles = `
     font-family: 'DM Sans', sans-serif;
     margin-top: 4px;
   }
+  .map-info-venue-emoji {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+  .map-info-partner {
+    font-size: 11px;
+    color: var(--ocean);
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    margin: 4px 0;
+  }
+  .map-info-host-btn {
+    margin-top: 8px;
+    width: 100%;
+    background: var(--ocean);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
   .map-count-badge { position: absolute; top: 14px; left: 14px; z-index: 2; background: white; border-radius: 100px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--charcoal); box-shadow: 0 2px 10px rgba(30,43,47,0.15); pointer-events: none; }
   .map-legend { display: flex; gap: 10px; padding: 12px 24px 0; flex-wrap: wrap; }
   .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); font-weight: 500; }
