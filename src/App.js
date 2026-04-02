@@ -1,6 +1,7 @@
 import { supabase } from './lib/supabase';
 import { useState, useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
 import { FOUNDER_EMAIL, AVATARS, KID_EMOJIS, HOODS, AGE_GROUPS, PORTLAND_VENUES, TOWNS_NEARBY, VENUE_TYPES, VENUE_PERKS, ALL_NEIGHBORHOODS, PLAYDATES, HOOD_PIN_DEFAULTS, pinColor } from './constants';
 import { FONT, styles } from './styles/index';
 import { loadSession, fetchProfileAndKids, getDefaultProfile, upsertProfile, replaceKids, createPlaydate, fetchPlaydates, fetchRsvps, joinPlaydate, leavePlaydate, fetchVenues, createVenueSubmission, uploadAvatar, uploadPlaydateCover } from './lib/session';
@@ -19,6 +20,60 @@ import { DetailModal } from './components/modals/DetailModal';
 import { TownsModal } from './components/modals/TownsModal';
 import { PreviewModal } from './components/modals/PreviewModal';
 import { PublicProfileModal } from "./components/modals/PublicProfileModal";
+
+const VENUE_COORDS = {
+  "182 Marginal Way": { lat: 43.6661, lng: -70.2595 },
+  "174 US-1, Scarborough": { lat: 43.5773, lng: -70.3242 },
+  "163 Buxton Rd, Saco": { lat: 43.4926, lng: -70.4489 },
+  "118 Alfred Street Biddeford": { lat: 43.4926, lng: -70.4489 },
+  "135 Pool St Biddeford": { lat: 43.4751, lng: -70.4584 },
+  "3 Stewart Dr": { lat: 43.5773, lng: -70.3242 },
+};
+
+const getCoords = (addr) => {
+  if (!addr) return null;
+  const match = Object.keys(VENUE_COORDS).find(k =>
+    addr.toLowerCase().includes(k.toLowerCase())
+  );
+  return match ? VENUE_COORDS[match] : null;
+};
+
+const MAP_CENTER = { lat: 43.6615, lng: -70.2553 };
+
+const MAP_OPTIONS = {
+  disableDefaultUI: true,
+  zoomControl: true,
+  styles: [
+    { featureType: "poi", stylers: [{ visibility: "off" }] },
+    { featureType: "transit", stylers: [{ visibility: "off" }] },
+    { elementType: "geometry", stylers: [{ color: "#DDE8D0" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#C8E0EA" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#2E2E2E" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+  ],
+};
+
+function playdateMarkerIcon(emoji) {
+  const e = emoji || "📍";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 36 44"><path d="M18 0 C8 0 0 8 0 18 C0 30 18 44 18 44 C18 44 36 30 36 18 C36 8 28 0 18 0Z" fill="#C4583A"/><circle cx="18" cy="18" r="10" fill="white" opacity="0.9"/><text x="18" y="22" text-anchor="middle" font-size="12">${e}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function venueMarkerIcon(emoji) {
+  const e = emoji || "📍";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="#2A5F7A" stroke="white" stroke-width="2"/><text x="14" y="18" text-anchor="middle" font-size="12">${e}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function markerIconWithSize(url, w, h) {
+  if (typeof window !== "undefined" && window.google?.maps?.Size) {
+    return {
+      url,
+      scaledSize: new window.google.maps.Size(w, h),
+    };
+  }
+  return { url };
+}
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
@@ -212,6 +267,9 @@ function MainApp({
   showIosBanner,
   setShowIosBanner,
 }) {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY || "",
+  });
   const isAuthed = !!session?.user?.id;
   const isAtCapacity = (pd) => {
     if (!pd.max_kids) return false;
@@ -541,100 +599,61 @@ function MainApp({
         {activeNav !== "dates" && activeNav !== "profile" && view === "map" && (
           <div style={{ paddingBottom: 100 }}>
             <div className="map-container">
-              <svg viewBox="0 0 420 360" className="map-svg">
-                <rect width="420" height="360" fill="#C8E0EA" />
-                {[1,2,3].map(i=><ellipse key={i} cx="370" cy="80" rx={40+i*25} ry={20+i*12} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>)}
-                <path d="M 80 40 L 340 40 L 360 70 L 370 110 L 355 160 L 330 200 L 300 240 L 270 275 L 240 300 L 200 315 L 160 310 L 130 290 L 100 265 L 75 235 L 60 200 L 55 160 L 60 110 L 70 70 Z" fill="#DDE8D0" stroke="white" strokeWidth="2"/>
-                {/* East End — eastern peninsula */}
-                <path d="M 265 55 L 355 65 L 370 110 L 355 160 L 320 200 L 290 180 L 275 130 L 265 80 Z" fill="rgba(42,95,122,0.13)"/>
-                {/* West End — western side */}
-                <path d="M 60 120 L 155 120 L 158 210 L 130 255 L 75 235 L 60 200 L 55 160 Z" fill="rgba(107,158,111,0.13)"/>
-                {/* Downtown — center/south */}
-                <path d="M 155 190 L 290 185 L 295 255 L 240 290 L 175 280 L 158 230 Z" fill="rgba(196,88,58,0.09)"/>
-                {/* Back Cove neighborhood — northwest */}
-                <path d="M 65 48 L 210 48 L 215 115 L 155 120 L 100 115 L 68 85 Z" fill="rgba(139,109,176,0.11)"/>
-                {/* Bayside — the triangle between Back Cove water, Downtown & East End */}
-                <path d="M 210 115 L 290 120 L 295 185 L 225 190 L 215 150 Z" fill="rgba(212,153,58,0.13)"/>
-                <path d="M 75 185 L 345 175" stroke="white" strokeWidth="2.5" opacity="0.7"/>
-                <path d="M 120 50 L 100 180" stroke="white" strokeWidth="2" opacity="0.6"/>
-                <path d="M 130 290 L 310 250" stroke="white" strokeWidth="2" opacity="0.6"/>
-                <path d="M 80 105 L 280 90" stroke="white" strokeWidth="2" opacity="0.5"/>
-                <path d="M 140 120 L 150 240" stroke="white" strokeWidth="2" opacity="0.5"/>
-                <path d="M 200 160 L 195 295" stroke="white" strokeWidth="2" opacity="0.5"/>
-                <path d="M 260 60 L 290 185" stroke="white" strokeWidth="2" opacity="0.5"/>
-                <ellipse cx="152" cy="182" rx="22" ry="14" fill="#A8C8A0" opacity="0.7"/>
-                <text x="152" y="186" textAnchor="middle" fontSize="8" fill="white" fontWeight="500">Deering Oaks</text>
-                <ellipse cx="320" cy="145" rx="20" ry="12" fill="#A8C8A0" opacity="0.7"/>
-                <text x="320" y="149" textAnchor="middle" fontSize="7" fill="white" fontWeight="500">E. Prom</text>
-                <ellipse cx="178" cy="78" rx="30" ry="14" fill="rgba(200,224,234,0.6)" stroke="rgba(42,95,122,0.3)" strokeWidth="1"/>
-                <text x="178" y="82" textAnchor="middle" fontSize="7.5" fill="#2A5F7A" fontWeight="500">Back Cove</text>
-                <text x="368" y="55" textAnchor="middle" fontSize="9" fill="rgba(42,95,122,0.7)" fontStyle="italic">Casco Bay</text>
-                {/* East End — eastern peninsula above waterfront */}
-                <text x="315" y="88" textAnchor="middle" fontSize="9" fill="rgba(42,95,122,0.9)" fontWeight="600">East End</text>
-                {/* West End — western side */}
-                <text x="88" y="190" textAnchor="middle" fontSize="8.5" fill="rgba(107,158,111,0.9)" fontWeight="600">West End</text>
-                {/* Downtown — center/south Congress St area */}
-                <text x="200" y="225" textAnchor="middle" fontSize="9" fill="rgba(196,88,58,0.8)" fontWeight="600">Downtown</text>
-                {/* Back Cove neighborhood label — north, distinct from the water */}
-                <text x="135" y="62" textAnchor="middle" fontSize="8.5" fill="rgba(139,109,176,0.8)" fontWeight="600">Back Cove</text>
-                {/* Bayside — between Downtown, Back Cove & East End (the correct location) */}
-                <text x="228" y="168" textAnchor="middle" fontSize="8.5" fill="rgba(212,153,58,0.95)" fontWeight="600">Bayside</text>
-              {filtered.map(pd => {
-                  const isActive = activePin === pd.id;
-                  const color = pinColor(pd.hood);
-                  return (
-                    <g key={pd.id} className="map-pin" onClick={() => setActivePin(isActive ? null : pd.id)}
-                      style={{ transform:`translate(${pd.x}px,${pd.y + (isActive?-4:0)}px) scale(${isActive?1.2:1})`, transformOrigin:"0 0", transition:"transform 0.2s" }}>
-                      {isActive && <circle cx="0" cy="-20" r="18" fill={color} opacity="0.2" className="pin-pulse"/>}
-                      <ellipse cx="1" cy="4" rx="9" ry="4" fill="rgba(0,0,0,0.15)"/>
-                      <path d="M 0 0 C -12 -10 -12 -30 0 -34 C 12 -30 12 -10 0 0" fill={color} className="pin-bubble"/>
-                      <circle cx="0" cy="-22" r="10" fill={color}/>
-                      <circle cx="0" cy="-22" r="7" fill="white" opacity="0.95"/>
-                      <text x="0" y="-18.5" textAnchor="middle" fontSize="9" dominantBaseline="middle">{pd.emoji}</text>
-                      <circle cx="8" cy="-34" r="7" fill="white" stroke={color} strokeWidth="1.5"/>
-                      <text x="8" y="-34" textAnchor="middle" fontSize="7" dominantBaseline="middle" fill={color} fontWeight="700">{pd.count}</text>
-                    </g>
-                  );
-                })}
-                <circle cx="205" cy="188" r="8" fill="rgba(42,95,122,0.15)"/>
-                <circle cx="205" cy="188" r="5" fill="white" stroke="#2A5F7A" strokeWidth="2"/>
-                <circle cx="205" cy="188" r="2.5" fill="#2A5F7A"/>
-              </svg>
-              <div className="map-count-badge">📍 {filtered.length} playdates</div>
-              {activePd && (
-                <div className="map-card-peek">
-                  <div className="peek-card" onClick={() => setShowDetail(activePd)}>
-                    <div className="peek-row">
-                      <div className="peek-emoji" style={{ background: activePd.bg }}>{activePd.emoji}</div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div className="peek-title">{activePd.title}</div>
-                        <div className="peek-meta">🕐 {activePd.date} · {activePd.count} going</div>
+              {!isLoaded ? (
+                <div className="map-loading">Loading map...</div>
+              ) : (
+                <GoogleMap
+                  mapContainerClassName="real-map-container"
+                  center={MAP_CENTER}
+                  zoom={11}
+                  options={MAP_OPTIONS}
+                  onClick={() => setActivePin(null)}
+                >
+                  {upcomingFiltered.map(pd => {
+                    const coords = getCoords(pd.addr);
+                    if (!coords) return null;
+                    return (
+                      <Marker
+                        key={pd.id}
+                        position={coords}
+                        onClick={() => setActivePin(pd.id)}
+                        icon={markerIconWithSize(playdateMarkerIcon(pd.emoji), 36, 44)}
+                      />
+                    );
+                  })}
+
+                  {allVenues.filter(v => v.addr).map((v, i) => (
+                    <Marker
+                      key={`venue-${i}`}
+                      position={getCoords(v.addr) || MAP_CENTER}
+                      icon={markerIconWithSize(venueMarkerIcon(v.emoji), 28, 28)}
+                    />
+                  ))}
+
+                  {activePd && getCoords(activePd.addr) && (
+                    <InfoWindow
+                      position={getCoords(activePd.addr)}
+                      onCloseClick={() => setActivePin(null)}
+                    >
+                      <div className="map-info-window" onClick={() => setShowDetail(activePd)} role="presentation">
+                        <div className="map-info-title">{activePd.title}</div>
+                        <div className="map-info-meta">{activePd.date}</div>
+                        <div className="map-info-meta">{activePd.venue}</div>
+                        <div className="map-info-count">{activePd.count} going</div>
                       </div>
-                      <button
-                        className={`peek-join ${((activePd._isDb && activePd._hostId === session?.user?.id) || (activePd._isDb ? activePd._joined : joined[activePd.id])) ? "joined" : ""}`}
-                        onClick={e => {
-                          e.stopPropagation();
-                          if (activePd._isDb) {
-                            if (activePd._hostId === session?.user?.id) return;
-                            handleToggleJoin(activePd.id);
-                          } else {
-                            setJoined(j => ({...j,[activePd.id]:!j[activePd.id]}));
-                          }
-                        }}
-                      >
-                        {(activePd._isDb && activePd._hostId === session?.user?.id)
-                          ? "Hosting"
-                          : ((activePd._isDb ? activePd._joined : joined[activePd.id]) ? "✓" : "Join")}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                    </InfoWindow>
+                  )}
+                </GoogleMap>
               )}
+              <div className="map-count-badge">📍 {upcomingFiltered.length} playdates</div>
             </div>
             <div className="map-legend">
-              {[["East End","#2A5F7A"],["West End","#6B9E6F"],["Downtown","#C4583A"],["Back Cove","#8B6DB0"],["Bayside","#D4993A"]].map(([n,c]) => (
-                <div key={n} className="legend-item"><div className="legend-dot" style={{background:c}}/>{n}</div>
-              ))}
+              <div className="legend-item">
+                <div className="legend-dot" style={{ background: "#C4583A" }} /> Playdates
+              </div>
+              <div className="legend-item">
+                <div className="legend-dot" style={{ background: "#2A5F7A" }} /> Venues
+              </div>
             </div>
             <div style={{
               fontSize: 11,
@@ -643,8 +662,7 @@ function MainApp({
               padding: "6px 24px 0",
               lineHeight: 1.5
             }}>
-              Map shows Portland area only during beta.
-              Full Greater Portland map coming soon.
+              Full Greater Portland is here!!!
             </div>
             <div style={{ padding:"20px 24px 0" }}>
               <div className="section-title" style={{ marginBottom:14 }}>All Playdates</div>
